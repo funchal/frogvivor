@@ -1,0 +1,13 @@
+Board: Gadget Factory's Papilio One (Butterfly One)
+500mA on USB, 800mA on 6.5V-15V 2.1mm, positive tip power jack
+.1" spacing
+FPGA: Xilinx Spartan 3E VTQFP-100 250K
+32MHz oscillator
+Power, RX/TX leds
+
+Specifications:
+http://gadgetforge.gadgetfactory.net/gf/project/butterfly_one/
+
+LCD:
+io 1-60uA
+supply 3.3, 5V 460mA
