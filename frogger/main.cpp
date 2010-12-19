@@ -4,10 +4,25 @@
 #include "SDL/SDL_mixer.h"
 #include <string>
 
+#define NB_PIXELS_PER_LINE 48
+
+// the upper frog is at row maxRow
+int maxRow = 0;
+// max row allowed for frogs. (frogs must not go up out of the screen)
+int maxRowAllowed = 8;
+// min row allowed for frogs. (frogs must not disapear when screen scroll up)
+int minRowAllowed = 0;
+
+void updateMaxRow(int row) {
+    if (row > maxRow) {
+        maxRow = row;
+    }
+}
+
 class Frog {
 
     public:
-    void draw(QPainter& painter);
+    void draw(QPainter& painter, int offset);
     void keyPressed();
     Frog(std::string imageStay, std::string ImageJump, int column, Mix_Chunk* croak);
 
@@ -17,9 +32,11 @@ class Frog {
     int row;
     int column;
     Mix_Chunk* croak;
-    int imageCpt;
+    // a move forward has been requested
     bool mvFwdRq;
+    // timeout for the images (jumping and non-jumping frog)
     int cpt;
+    // jump has two parts: during jump, afterjump
     bool firstPartOfJump;
 };
 
@@ -34,42 +51,54 @@ Frog::Frog(std::string imageStay, std::string imageJump, int column, Mix_Chunk* 
     firstPartOfJump =false;
 }
 
-void Frog::draw(QPainter& painter) {
+void Frog::draw(QPainter& painter, int offset) {
     // kind of FSM: !j0 !j0 ... !j0 j4 j3 ... j0 !j4 !j3 ... !j0 !j0 ...
  
     // state transition of the FSM
+
     if (firstPartOfJump) {
-	if (cpt == 0) {
-	    // the image of the non jumping frog must remains 4+1 tiks on the screen
-	    firstPartOfJump = false;
-	    cpt = 4;
-	}
-	else {
-	    cpt--;
-	}
+        if (cpt == 0) {
+            // the image of the non jumping frog must remains 4+1 tiks on the screen
+            firstPartOfJump = false;
+            cpt = 4;
+        }
+        else {
+            cpt--;
+        }
     }    
     else {
-	if (cpt == 0) {
-	    if (mvFwdRq) {
-		mvFwdRq = false;
-		row++;
-		Mix_PlayChannel(-1, croak, 0);
-		// the image of the jumping frog must remains 4+1 tiks on the screen
-		firstPartOfJump = true;
-		cpt = 4;
-	    }
-	}
-	else {
-	    cpt--;
-	}
+        if (cpt == 0) {
+            if (mvFwdRq) {
+                mvFwdRq = false;
+                if (row < maxRowAllowed) {
+                    row++;
+                    updateMaxRow(row);
+                    Mix_PlayChannel(-1, croak, 0);
+                    // the image of the jumping frog must remains 4+1 tiks on the screen
+                    firstPartOfJump = true;
+                    cpt = 4;
+                }
+            }
+        }
+        else {
+            cpt--;
+        }
     }
 
+    // WARNING: for the time, this is bugged:
+    // satifying the below condition depends on the frog order.
+    // This will be fixed when we translate c++/qt into c/sdl,
+    // doing each step for the 4 frogs before doing next step.
+    if (row < minRowAllowed) { // emergency jump
+        row++;
+    }
+    
     // output function of the FSM
     if(firstPartOfJump) {
-	painter.drawImage(column, 48*(9-row), jump);
+        painter.drawImage(column, NB_PIXELS_PER_LINE*(9-row)+offset, jump);
     }
     else {
-	painter.drawImage(column, 48*(9-row), stay);
+        painter.drawImage(column, NB_PIXELS_PER_LINE*(9-row)+offset, stay);
     }
 }
 
@@ -77,13 +106,14 @@ void Frog::keyPressed() {
     mvFwdRq = true;
 }
 
+
 class Frogger : public QWidget {
     public:
     Frogger(QWidget* parent = 0);
     void paintEvent(QPaintEvent* event);
     void keyPressEvent(QKeyEvent* event);
     ~Frogger();
-
+    
     private:
     QTimer* timer;
     QImage car[5];
@@ -91,6 +121,8 @@ class Frogger : public QWidget {
     QImage terrain[7];
     Mix_Chunk* croak;
     Frog* frogs[4];
+    // offset of immediate screen wrt the starting screen (unit: pixel)
+    int offset;
 };
 
 Frogger::Frogger(QWidget* parent) : QWidget(parent) {
@@ -102,10 +134,10 @@ Frogger::Frogger(QWidget* parent) : QWidget(parent) {
 
     croak = Mix_LoadWAV("sounds/4.wav");
 
-    frogs[0] = new Frog("images/50.png","images/51.png",48*(3+2*0),croak);
-    frogs[1] = new Frog("images/52.png","images/53.png",48*(3+2*1),croak);
-    frogs[2] = new Frog("images/54.png","images/55.png",48*(3+2*2),croak);
-    frogs[3] = new Frog("images/56.png","images/57.png",48*(3+2*3),croak);
+    frogs[0] = new Frog("images/50.png","images/51.png",NB_PIXELS_PER_LINE*(3+2*0),croak);
+    frogs[1] = new Frog("images/52.png","images/53.png",NB_PIXELS_PER_LINE*(3+2*1),croak);
+    frogs[2] = new Frog("images/54.png","images/55.png",NB_PIXELS_PER_LINE*(3+2*2),croak);
+    frogs[3] = new Frog("images/56.png","images/57.png",NB_PIXELS_PER_LINE*(3+2*3),croak);
 
     car[0].load("images/100.png");
     car[1].load("images/101.png");
@@ -127,6 +159,8 @@ Frogger::Frogger(QWidget* parent) : QWidget(parent) {
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(1000/50);
+
+    offset = 0;
 }
 
 Frogger::~Frogger() {
@@ -135,14 +169,21 @@ Frogger::~Frogger() {
 
 void Frogger::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
+    // scrolling
+    if ((maxRow-3)*NB_PIXELS_PER_LINE > offset) {
+        offset++;
+    }
+    maxRowAllowed = (offset+480-NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
+    minRowAllowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
     // draw terrain
-    for(int i = 0; i != 10; ++i) {
-        painter.drawImage(0, 48*i, terrain[i % 7]);
+    for(int i = 0; i != 11; ++i) {
+        // no need to understand this. Will be changed to get random road and grass bands.
+        painter.drawImage(0, (NB_PIXELS_PER_LINE*i+offset)%(480+NB_PIXELS_PER_LINE)-NB_PIXELS_PER_LINE, terrain[i % 7]);
     }
     // draw frogs
-   for(int i = 0; i != 4; ++i) {
-	frogs[i]->draw(painter);
-   }
+    for(int i = 0; i != 4; ++i) {
+        frogs[i]->draw(painter, offset);
+    }
 }
 
 void Frogger::keyPressEvent(QKeyEvent* event) {
@@ -165,6 +206,7 @@ void Frogger::keyPressEvent(QKeyEvent* event) {
             break;
     }
 }
+
 
 int main(int argc, char* argv[]) {
 
