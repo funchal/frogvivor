@@ -2,6 +2,48 @@
 #include <iostream>
 #include "SDL/SDL.h"
 #include "SDL/SDL_mixer.h"
+#include <string>
+
+class Frog  {
+
+    public:
+    void draw(QPainter& painter);
+    void keyPressed();
+    Frog(std::string imageStay, std::string ImageJump, int column, Mix_Chunk* croak);
+
+    private:
+    QTimer* timer_image;
+    QTimer* timer_push;
+    QImage stay;
+    QImage jump;
+    int row;
+    int column;
+    Mix_Chunk* croak;
+};
+
+Frog::Frog(std::string imageStay, std::string imageJump, int column, Mix_Chunk* croak) {
+    row = 0;
+    stay.load(imageStay.c_str());
+    jump.load(imageJump.c_str());
+    this->column = column;
+    this->croak = croak;
+    // FIXME: timers
+}
+
+void Frog::draw(QPainter& painter) {
+    // FIXME: animation
+    if(row%2) {
+	painter.drawImage(column, 48*(9-row/2-0.5), jump);
+    }
+    else {
+	painter.drawImage(column, 48*(9-row/2), stay);
+    }
+}
+
+void Frog::keyPressed() {
+    Mix_PlayChannel(-1, croak, 0);
+    row++;
+}
 
 class Frogger : public QWidget {
     public:
@@ -12,14 +54,13 @@ class Frogger : public QWidget {
 
     private:
     QTimer* timer;
-    QImage frog[4];
-    QImage jump[4];
     QImage car[5];
     QImage truck[2];
     QImage terrain[7];
     Mix_Chunk* croak;
-    int player[4];
 };
+
+Frog* frogs[4];
 
 Frogger::Frogger(QWidget* parent) : QWidget(parent) {
     setWindowTitle("Frogger");
@@ -28,15 +69,12 @@ Frogger::Frogger(QWidget* parent) : QWidget(parent) {
     frect.moveCenter(QDesktopWidget().availableGeometry().center());
     move(frect.topLeft());
 
-    frog[0].load("images/50.png");
-    frog[1].load("images/52.png");
-    frog[2].load("images/54.png");
-    frog[3].load("images/56.png");
+    croak = Mix_LoadWAV("sounds/4.wav");
 
-    jump[0].load("images/51.png");
-    jump[1].load("images/53.png");
-    jump[2].load("images/55.png");
-    jump[3].load("images/57.png");
+    frogs[0] = new Frog("images/50.png","images/51.png",48*(3+2*0),croak);
+    frogs[1] = new Frog("images/52.png","images/53.png",48*(3+2*1),croak);
+    frogs[2] = new Frog("images/54.png","images/55.png",48*(3+2*2),croak);
+    frogs[3] = new Frog("images/56.png","images/57.png",48*(3+2*3),croak);
 
     car[0].load("images/100.png");
     car[1].load("images/101.png");
@@ -55,14 +93,9 @@ Frogger::Frogger(QWidget* parent) : QWidget(parent) {
     terrain[5].load("images/205.png");
     terrain[6].load("images/206.png");
 
-    croak = Mix_LoadWAV("sounds/4.wav");
-
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
     timer->start(1000/33);
-    for(int i = 0; i != 4; ++i) {
-        player[i] = 0;
-    }
 }
 
 Frogger::~Frogger() {
@@ -71,33 +104,29 @@ Frogger::~Frogger() {
 
 void Frogger::paintEvent(QPaintEvent* event) {
     QPainter painter(this);
+    // draw terrain
     for(int i = 0; i != 10; ++i) {
         painter.drawImage(0, 48*i, terrain[i % 7]);
     }
-    for(int i = 0; i != 4; ++i) {
-        if(player[i]%2) {
-            painter.drawImage(48*(3+2*i), 48*(9-player[i]/2-0.5), jump[i]);
-        }
-        else {
-            painter.drawImage(48*(3+2*i), 48*(9-player[i]/2), frog[i]);
-        }
-    }
+    // draw frogs
+   for(int i = 0; i != 4; ++i) {
+	frogs[i]->draw(painter);
+   }
 }
 
 void Frogger::keyPressEvent(QKeyEvent* event) {
-    Mix_PlayChannel(-1, croak, 0);
     switch(event->key()) {
         case Qt::Key_Up:
-            player[0]++;
+            frogs[0]->keyPressed();
             break;
         case Qt::Key_Z:
-            player[1]++;
+            frogs[1]->keyPressed();
             break;
-        case Qt::Key_P:
-            player[2]++;
-            break;
+        case Qt::Key_P: 
+            frogs[2]->keyPressed();
+           break;
         case Qt::Key_Q:
-            player[3]++;
+            frogs[3]->keyPressed();
             break;
         case Qt::Key_Escape:
             exit(0);
