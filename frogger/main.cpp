@@ -4,7 +4,7 @@
 #include "SDL/SDL_mixer.h"
 #include <string>
 
-class Frog  {
+class Frog {
 
     public:
     void draw(QPainter& painter);
@@ -12,13 +12,15 @@ class Frog  {
     Frog(std::string imageStay, std::string ImageJump, int column, Mix_Chunk* croak);
 
     private:
-    QTimer* timer_image;
-    QTimer* timer_push;
     QImage stay;
     QImage jump;
     int row;
     int column;
     Mix_Chunk* croak;
+    int imageCpt;
+    bool mvFwdRq;
+    int cpt;
+    bool firstPartOfJump;
 };
 
 Frog::Frog(std::string imageStay, std::string imageJump, int column, Mix_Chunk* croak) {
@@ -27,22 +29,52 @@ Frog::Frog(std::string imageStay, std::string imageJump, int column, Mix_Chunk* 
     jump.load(imageJump.c_str());
     this->column = column;
     this->croak = croak;
-    // FIXME: timers
+    mvFwdRq = false;
+    cpt = 0;
+    firstPartOfJump =false;
 }
 
 void Frog::draw(QPainter& painter) {
-    // FIXME: animation
-    if(row%2) {
-	painter.drawImage(column, 48*(9-row/2-0.5), jump);
+    // kind of FSM: !j0 !j0 ... !j0 j4 j3 ... j0 !j4 !j3 ... !j0 !j0 ...
+ 
+    // state transition of the FSM
+    if (firstPartOfJump) {
+	if (cpt == 0) {
+	    // the image of the non jumping frog must remains 4+1 tiks on the screen
+	    firstPartOfJump = false;
+	    cpt = 4;
+	}
+	else {
+	    cpt--;
+	}
+    }    
+    else {
+	if (cpt == 0) {
+	    if (mvFwdRq) {
+		mvFwdRq = false;
+		row++;
+		Mix_PlayChannel(-1, croak, 0);
+		// the image of the jumping frog must remains 4+1 tiks on the screen
+		firstPartOfJump = true;
+		cpt = 4;
+	    }
+	}
+	else {
+	    cpt--;
+	}
+    }
+
+    // output function of the FSM
+    if(firstPartOfJump) {
+	painter.drawImage(column, 48*(9-row), jump);
     }
     else {
-	painter.drawImage(column, 48*(9-row/2), stay);
+	painter.drawImage(column, 48*(9-row), stay);
     }
 }
 
 void Frog::keyPressed() {
-    Mix_PlayChannel(-1, croak, 0);
-    row++;
+    mvFwdRq = true;
 }
 
 class Frogger : public QWidget {
@@ -58,9 +90,8 @@ class Frogger : public QWidget {
     QImage truck[2];
     QImage terrain[7];
     Mix_Chunk* croak;
+    Frog* frogs[4];
 };
-
-Frog* frogs[4];
 
 Frogger::Frogger(QWidget* parent) : QWidget(parent) {
     setWindowTitle("Frogger");
@@ -95,7 +126,7 @@ Frogger::Frogger(QWidget* parent) : QWidget(parent) {
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-    timer->start(1000/33);
+    timer->start(1000/50);
 }
 
 Frogger::~Frogger() {
