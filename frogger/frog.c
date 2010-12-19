@@ -153,7 +153,8 @@ int main(int argc, char* argv[]) {
 
     int i;
     Uint32 time = 0;
-    while(1) {
+    int quit = 0;
+    while(!quit) {
         // flip screen buffer
         if(SDL_Flip(screen) != 0) {
             fprintf(stderr, "Failed to swap the buffers: %s", SDL_GetError());
@@ -181,8 +182,7 @@ int main(int argc, char* argv[]) {
                     }
                     break;
                 case SDL_QUIT:
-                    exit(0);
-                    break;
+                    quit = 1;
                 default:
                     break;
             }
@@ -195,6 +195,23 @@ int main(int argc, char* argv[]) {
             SDL_Delay(delay - curr);
         }
         time = SDL_GetTicks();
+    }
+
+    for(i = 0; i != 4; ++i) {
+        free_image(frog[i]);
+        free_image(jump[i]);
+    }
+
+    for(i = 0; i != 5; ++i) {
+        free_image(car[i]);
+    }
+
+    for(i = 0; i != 2; ++i) {
+        free_image(truck[i]);
+    }
+
+    for(i = 0; i != 7; ++i) {
+        free_image(terrain[i]);
     }
 
     SDL_Quit();
