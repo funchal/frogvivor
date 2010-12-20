@@ -1,9 +1,36 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-SDL_Surface* screen = NULL;
+// static resources
+SDL_Surface* screen;
+SDL_Surface* frog[4];
+SDL_Surface* jump[4]; 
+SDL_Surface* car[5];
+SDL_Surface* truck[2];
+SDL_Surface* terrain[7];
+Mix_Chunk* croak;
+
+// dynamic state
+struct player {
+    int position;
+    int state;
+    int key_pressed;
+    SDLKey key;
+} player[4];
+
+#define NB_PIXELS_PER_LINE 48
+
+// the upper frog is at row maxRow
+int max_row = 0;
+// max row allowed for frogs. (frogs must not go up out of the screen)
+int max_row_allowed = 8;
+// min row allowed for frogs. (frogs must not disapear when screen scroll up)
+int min_row_allowed = 0;
+// screen offset in pixels
+int offset = 0;
 
 SDL_Surface* load_image(const char* filename) {
     SDL_Surface* temp;
@@ -18,14 +45,8 @@ SDL_Surface* load_image(const char* filename) {
     return image;
 }
 
-void free_image(SDL_Surface* image) {
-    SDL_FreeSurface(image);
-}
-
 void draw_image(int x, int y, SDL_Surface* image) {
-    SDL_Rect rect;
-    rect.x = x;
-    rect.y = y;
+    SDL_Rect rect = { .x = x, .y = y };
     if(SDL_BlitSurface(image, NULL, screen, &rect) < 0) {
         int* p = 0;
         *p = 3;
@@ -34,30 +55,23 @@ void draw_image(int x, int y, SDL_Surface* image) {
     }
 }
 
-// static resources
-SDL_Surface* frog[4];
-SDL_Surface* jump[4]; 
-SDL_Surface* car[5];
-SDL_Surface* truck[2];
-SDL_Surface* terrain[7];
-
-// dynamic state
-struct player {
-    int position;
-    int state;
-    int key_pressed;
-    SDLKey key;
-} player[4];
-
 void tick() {
+    // scrolling
+    if ((max_row-3)*NB_PIXELS_PER_LINE > offset) {
+        offset++;
+    }
+    max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
+    min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
+
     // background
     int i;
-    for(i = 0; i != 10; ++i) {
-        draw_image(0, 48*i, terrain[i % 7]);
+    for(i = 0; i != 11; ++i) {
+        // no need to understand this. Will be changed to get random road and grass bands.
+        draw_image(0, (NB_PIXELS_PER_LINE*i+offset)%(480+NB_PIXELS_PER_LINE)-NB_PIXELS_PER_LINE, terrain[i % 7]);
     }
 
     // cars
-    draw_image(48, 48, car[3]);
+    // draw_image(48, 48, car[3]);
 
     // frogs
     SDL_Surface* image;
@@ -67,9 +81,17 @@ void tick() {
             case 0:
                 player[i].state = 0;
                 image = frog[i];
-                if(player[i].key_pressed) {
+                if( // normal jump
+                    (player[i].key_pressed && (player[i].position < max_row_allowed)) ||
+                    // emergency jump
+                    (player[i].position < min_row_allowed) )
+                {
                     player[i].state++;
                     player[i].position++;
+                    Mix_PlayChannel(-1, croak, 0);
+                    if(player[i].position > max_row) {
+                        max_row = player[i].position;
+                    }
                 }
                 break;
             case 1:
@@ -90,16 +112,33 @@ void tick() {
                 abort();
         }
 
-        draw_image(48*(3+2*i), 48*(9-player[i].position), image);
+        draw_image(48*(3+2*i), NB_PIXELS_PER_LINE*(9-player[i].position)+offset, image);
     }
 }
 
 int main(int argc, char* argv[]) {
     (void) argc;
     (void) argv;
+
     // initialize SDL
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+    if(SDL_Init(0) != 0) {
         fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    // initialize audio
+    if(SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+        fprintf(stderr, "Unable to initialize audio: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    if(Mix_OpenAudio(22040, AUDIO_S16SYS, 2, 4096) != 0) {
+        fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());
+        exit(1);
+    }
+
+    if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+        fprintf(stderr, "Unable to initialize video: %s\n", SDL_GetError());
         exit(1);
     }
 
@@ -108,11 +147,6 @@ int main(int argc, char* argv[]) {
     screen = SDL_SetVideoMode(640, 480, 24, SDL_HWSURFACE | SDL_DOUBLEBUF);
     if(screen == NULL) {
         fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    if(Mix_OpenAudio(22040, AUDIO_S16SYS, 2, 4096) != 0) {
-        fprintf(stderr, "Unable to initialize audio: %s\n", SDL_GetError());
         exit(1);
     }
 
@@ -144,26 +178,39 @@ int main(int argc, char* argv[]) {
     terrain[5] = load_image("images/205.bmp");
     terrain[6] = load_image("images/206.bmp");
 
+    croak = Mix_LoadWAV("sounds/4.wav");
+
     // initial state
-    memset(player, 0, 4*sizeof(player));
+    memset(player, 0, sizeof(player));
     player[0].key = SDLK_UP;
     player[1].key = SDLK_z;
     player[2].key = SDLK_p;
     player[3].key = SDLK_q;
 
+    // main synchronous loop
     int i;
     Uint32 time = 0;
     int quit = 0;
     while(!quit) {
+
+        // limit frames per second
+        Uint32 delay = 13; // ms
+        Uint32 curr = SDL_GetTicks() - time;
+        if(curr < delay) {
+            SDL_Delay(delay - curr);
+        }
+        time = SDL_GetTicks();
+
+        // calculate next frame
+        tick();
+
         // flip screen buffer
         if(SDL_Flip(screen) != 0) {
             fprintf(stderr, "Failed to swap the buffers: %s", SDL_GetError());
             exit(1);
         }
 
-        tick();
-
-        // event loop
+        // handle asynchronous events
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
@@ -180,6 +227,9 @@ int main(int argc, char* argv[]) {
                             player[i].key_pressed = 1;
                         }
                     }
+                    if(event.key.keysym.sym == SDLK_ESCAPE) {
+                        quit = 1;
+                    }
                     break;
                 case SDL_QUIT:
                     quit = 1;
@@ -187,32 +237,30 @@ int main(int argc, char* argv[]) {
                     break;
             }
         }
-
-        // limit frames per second
-        Uint32 delay = 15; // ms
-        Uint32 curr = SDL_GetTicks() - time;
-        if(curr < delay) {
-            SDL_Delay(delay - curr);
-        }
-        time = SDL_GetTicks();
     }
 
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+
     for(i = 0; i != 4; ++i) {
-        free_image(frog[i]);
-        free_image(jump[i]);
+        SDL_FreeSurface(frog[i]);
+        SDL_FreeSurface(jump[i]);
     }
 
     for(i = 0; i != 5; ++i) {
-        free_image(car[i]);
+        SDL_FreeSurface(car[i]);
     }
 
     for(i = 0; i != 2; ++i) {
-        free_image(truck[i]);
+        SDL_FreeSurface(truck[i]);
     }
 
     for(i = 0; i != 7; ++i) {
-        free_image(terrain[i]);
+        SDL_FreeSurface(terrain[i]);
     }
+
+    Mix_CloseAudio();
+    Mix_FreeChunk(croak);
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
     SDL_Quit();
     return 0;
