@@ -11,6 +11,8 @@ SDL_Surface* jump[4];
 SDL_Surface* car[5];
 SDL_Surface* truck[2];
 SDL_Surface* terrain[7];
+SDL_Surface* font;
+
 Mix_Chunk* croak;
 
 // dynamic state
@@ -53,6 +55,36 @@ void draw_image(int x, int y, SDL_Surface* image) {
         fprintf(stderr, "SDL_BlitSurface error: %s\n", SDL_GetError());
         exit(1);
     }
+}
+
+inline void set_pixel(int x, int y, int r, int g, int b) {
+    Uint8* pixmem = (Uint8*) screen->pixels + 3*(640*y + x);
+    pixmem[0] = r;
+    pixmem[1] = g;
+    pixmem[2] = b;
+}
+
+void draw_text(int x, int y, const char* text) {
+    SDL_LockSurface(screen);
+    int my;
+    for(my = 0; my != 16; ++my) {
+        unsigned c;
+        for(c = 0; c != strlen(text); ++c) {
+            if(text[c] < 32 || text[c] >= 96) {
+                fprintf(stderr, "bug!\n");
+                exit(1);
+            }
+            Uint8* data = (Uint8*) font->pixels + 3*8*8*(text[c] - 32);
+
+            int mx;
+            for(mx = 0; mx != 16; ++mx) {
+                if(data[3*((my/2)*8 + mx/2)] != 0) {
+                    set_pixel(x+16*c+mx, y+my, 16*c+mx, 16*my, 32*c);
+                }
+            }
+        }
+    }
+    SDL_UnlockSurface(screen);
 }
 
 void tick() {
@@ -114,6 +146,9 @@ void tick() {
 
         draw_image(48*(3+2*i), NB_PIXELS_PER_LINE*(9-player[i].position)+offset, image);
     }
+
+    // text
+    draw_text(32, 16, "PLAYER 1 PLAYER 2 PLAYER 3 PLAYER 4");
 }
 
 int main(int argc, char* argv[]) {
@@ -177,6 +212,8 @@ int main(int argc, char* argv[]) {
     terrain[4] = load_image("images/204.bmp");
     terrain[5] = load_image("images/205.bmp");
     terrain[6] = load_image("images/206.bmp");
+
+    font = load_image("images/font.bmp");
 
     croak = Mix_LoadWAV("sounds/4.wav");
 
@@ -257,6 +294,8 @@ int main(int argc, char* argv[]) {
     for(i = 0; i != 7; ++i) {
         SDL_FreeSurface(terrain[i]);
     }
+
+    SDL_FreeSurface(font);
 
     Mix_CloseAudio();
     Mix_FreeChunk(croak);
