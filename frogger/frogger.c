@@ -107,28 +107,17 @@ bool bool_random() {
     }
 }
 
-/* void generate_background() { */
-/*     int i; */
-/*     if (NB_BANDS < LAUNCH_PAD_SIZE) { */
-/*         exit(1); */
-/*     } */
-/*     for (i = 0 ; i < LAUNCH_PAD_SIZE ; ++i) { */
-/*         background->road = false; */
-/*     } */
-/*     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS ; ++i) { */
-/*         background->road = bool_random(); */
-/*     }     */
-/* } */
-
 void generate_background() {
     int i;
-    for (i = 0 ; i < NB_BANDS ; ++i) {
-        if (i%5 == 0) {
-            background[i].road = false;
-        }
-        else {
-            background[i].road = true;
-        }
+    if (NB_BANDS < LAUNCH_PAD_SIZE) {
+        exit(1);
+    }
+    for (i = 0 ; i < LAUNCH_PAD_SIZE ; ++i) {
+        background[i].road = false;
+    }
+    for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS ; ++i) {
+        // fixme: change probability (for the time 1/2)
+        background[i].road = bool_random();
     }
 }
 
