@@ -9,9 +9,9 @@
 // number of pixel per band
 #define NB_PIXELS_PER_LINE 48
 // number of grass/road bands before finish line
-#define NB_BANDS 20
+#define NB_BANDS 15
 // minimum number of grass bands before first road 
-#define LAUNCH_PAD_SIZE 5
+#define LAUNCH_PAD_SIZE 3
 
 // static resources
 SDL_Surface* screen;
@@ -123,7 +123,10 @@ void generate_background() {
 
 void tick() {
     // scrolling
-    if ((max_row-3)*NB_PIXELS_PER_LINE > offset) {
+    if (// a frog is near the top of the screen
+        ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
+        // the finish line is not visible yet
+        (offset < (NB_BANDS+1)*NB_PIXELS_PER_LINE - 480)) {
         offset++;
     }
     max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
@@ -137,9 +140,11 @@ void tick() {
     for(i = 0; i != 11; ++i) {
         // todo: use a random function similar to that we'll use in the fpga
         // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
-        // no need to understand this. Will be changed to get random road and grass bands.
         line_number = (offset/NB_PIXELS_PER_LINE) + i;
-        if (background[line_number].road == true) {
+        if (line_number == NB_BANDS) {
+            background_image = terrain[6];
+        }
+        else if (background[line_number].road == true) {
             background_image = terrain[1];
         }
         else {
