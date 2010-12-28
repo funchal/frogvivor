@@ -32,9 +32,18 @@ struct player {
     SDLKey key;
 } player[4];
 
+struct vehicle {
+    bool type; // 0 <-> car, 1 <-> truck
+    int abscissa; // x coordinate
+};
+
 struct band {
     bool road; // road or grass
+    bool speed; // speed of the vehicules. 0 <-> 2px/tick, 1 <-> 3px/tick 
+    int nb_vehicles; // 1 or 2
+    struct vehicle veh[2]; // depending on nb_vehicules, 1 or 2 are used
 } background[NB_BANDS];
+
 
 // the upper frog is at row maxRow
 int max_row = 0;
@@ -107,8 +116,13 @@ bool bool_random() {
     }
 }
 
+int int_random() {
+    return random();
+}
+
+// generate background and vehicles
 void generate_background() {
-    int i;
+    int i, j, veh_length;
     if (NB_BANDS < LAUNCH_PAD_SIZE) {
         exit(1);
     }
@@ -118,6 +132,30 @@ void generate_background() {
     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS ; ++i) {
         // fixme: change probability (for the time 1/2)
         background[i].road = bool_random();
+        // generate vehicles
+        background[i].speed = bool_random();
+        if (bool_random()) {
+            background[i].nb_vehicles = 1;
+        }
+        else {
+            background[i].nb_vehicles = 2;
+        }
+        for (j = 0 ; j <= 1 ; j++) {
+            background[i].veh[j].type = bool_random();
+            background[i].veh[j].abscissa = int_random()%600;
+        }
+        // vehicles must not overlap
+        for (j = 0 ; j <= 1 ; j++) {
+            if (background[i].veh[1].type == 0) { // car
+                veh_length = 80;
+            }
+            else { // trunk
+                veh_length = 130;
+            }
+            if (background[i].veh[j].abscissa + veh_length > background[i].veh[(j+1)%2].abscissa) {
+                background[i].veh[(j+1)%2].abscissa = (background[i].veh[j].abscissa + veh_length) % 600;
+            }
+        }
     }
 }
 
@@ -133,31 +171,51 @@ void tick() {
     min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
 
     // background
+    // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
     SDL_Surface* background_image;
+    SDL_Surface* veh_image;
     int i;
-    int line_number;
-    int anti_y; // distance from the bottom of the screen instead of from the top
+    int i_veh;
+    int line_number; 
+    int y; // distance from the top of the screen
     for(i = 0; i != 11; ++i) {
-        // todo: use a random function similar to that we'll use in the fpga
-        // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
+        // y = (total height) - (piece of first line) - (full lines between 1 and i)
+        y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         line_number = (offset/NB_PIXELS_PER_LINE) + i;
-        if (line_number == NB_BANDS) {
+        // draw background
+        if (line_number == NB_BANDS) { // finish line
             background_image = terrain[6];
         }
-        else if (background[line_number].road == true) {
+        else if (background[line_number].road == true) { // road
             background_image = terrain[1];
         }
-        else {
+        else { // grass
             background_image = terrain[0];
         }
-        // anti_y = (piece of first line) + (full lines between 1 and i)
-        anti_y = (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) + (i*NB_PIXELS_PER_LINE);
-        draw_image(0, 480 - anti_y, background_image);
+        draw_image(0, y, background_image);
+
+        // draw vehicles
+        if (background[line_number].road == true) { // road
+            for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
+                if (background[line_number].veh[i_veh].type == 0) {
+                    veh_image = car[0];
+                }
+                else {
+                    veh_image = truck[0];
+                }
+                draw_image(background[line_number].veh[i_veh].abscissa, y+3, veh_image);
+                // update abscissa
+                // 800 == screen length + 200
+                // + 150 ... - 150    for gradual display at the beginning of the line
+                if (background[line_number].speed == true) {
+                    background[line_number].veh[i_veh].abscissa = ((background[line_number].veh[i_veh].abscissa + 2 + 150) % 800) - 150;
+                }
+                else {
+                    background[line_number].veh[i_veh].abscissa = ((background[line_number].veh[i_veh].abscissa + 3 + 150) % 800) - 150;
+                }
+            }
+        }
     }
-
-    // cars
-    //    draw_image(48, 480-8*48, car[0]);
-
 
     // frogs
     SDL_Surface* image;
