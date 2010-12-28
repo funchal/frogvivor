@@ -3,6 +3,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+//#include <rand.h>
+
+// number of pixel per band
+#define NB_PIXELS_PER_LINE 48
+// number of grass/road bands before finish line
+#define NB_BANDS 20
+// minimum number of grass bands before first road 
+#define LAUNCH_PAD_SIZE 5
 
 // static resources
 SDL_Surface* screen;
@@ -23,7 +32,9 @@ struct player {
     SDLKey key;
 } player[4];
 
-#define NB_PIXELS_PER_LINE 48
+struct band {
+    bool road; // road or grass
+} background[NB_BANDS];
 
 // the upper frog is at row maxRow
 int max_row = 0;
@@ -87,6 +98,40 @@ void draw_text(int x, int y, const char* text) {
     SDL_UnlockSurface(screen);
 }
 
+bool bool_random() {
+    if (random()%2 == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+/* void generate_background() { */
+/*     int i; */
+/*     if (NB_BANDS < LAUNCH_PAD_SIZE) { */
+/*         exit(1); */
+/*     } */
+/*     for (i = 0 ; i < LAUNCH_PAD_SIZE ; ++i) { */
+/*         background->road = false; */
+/*     } */
+/*     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS ; ++i) { */
+/*         background->road = bool_random(); */
+/*     }     */
+/* } */
+
+void generate_background() {
+    int i;
+    for (i = 0 ; i < NB_BANDS ; ++i) {
+        if (i%5 == 0) {
+            background[i].road = false;
+        }
+        else {
+            background[i].road = true;
+        }
+    }
+}
+
 void tick() {
     // scrolling
     if ((max_row-3)*NB_PIXELS_PER_LINE > offset) {
@@ -96,14 +141,29 @@ void tick() {
     min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
 
     // background
+    SDL_Surface* background_image;
     int i;
+    int line_number;
+    int anti_y; // distance from the bottom of the screen instead of from the top
     for(i = 0; i != 11; ++i) {
+        // todo: use a random function similar to that we'll use in the fpga
+        // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
         // no need to understand this. Will be changed to get random road and grass bands.
-        draw_image(0, (NB_PIXELS_PER_LINE*i+offset)%(480+NB_PIXELS_PER_LINE)-NB_PIXELS_PER_LINE, terrain[i % 7]);
+        line_number = (offset/NB_PIXELS_PER_LINE) + i;
+        if (background[line_number].road == true) {
+            background_image = terrain[1];
+        }
+        else {
+            background_image = terrain[0];
+        }
+        // anti_y = (piece of first line) + (full lines between 1 and i)
+        anti_y = (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) + (i*NB_PIXELS_PER_LINE);
+        draw_image(0, 480 - anti_y, background_image);
     }
 
     // cars
-    // draw_image(48, 48, car[3]);
+    //    draw_image(48, 480-8*48, car[0]);
+
 
     // frogs
     SDL_Surface* image;
@@ -223,6 +283,10 @@ int main(int argc, char* argv[]) {
     player[1].key = SDLK_z;
     player[2].key = SDLK_p;
     player[3].key = SDLK_q;
+
+    // generate background
+    srandom(867);
+    generate_background();
 
     // main synchronous loop
     int i;
