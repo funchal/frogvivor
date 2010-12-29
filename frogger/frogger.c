@@ -21,6 +21,8 @@ SDL_Surface* frog[4];
 SDL_Surface* jump[4]; 
 SDL_Surface* car[5];
 SDL_Surface* truck[2];
+SDL_Surface* carRL[5];
+SDL_Surface* truckRL[2];
 SDL_Surface* terrain[7];
 SDL_Surface* font;
 
@@ -206,10 +208,20 @@ void tick() {
         if (background[line_number].road == true) { // road
             for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
                 if (background[line_number].veh[i_veh].type == CAR) {
-                    veh_image = car[0];
+                    if (background[line_number].direction == LR) {
+                        veh_image = car[0];
+                    }
+                    else {
+                        veh_image = carRL[0];
+                    }
                 }
                 else {
-                    veh_image = truck[0];
+                    if (background[line_number].direction == LR) {
+                        veh_image = truck[0];
+                    }
+                    else {
+                        veh_image = truckRL[0];
+                    }
                 }
                 // y+3 because cars are thinner than roads
                 draw_image(background[line_number].veh[i_veh].x, y+3, veh_image);
@@ -337,6 +349,15 @@ int main(int argc, char* argv[]) {
 
     truck[0] = load_image("images/105.bmp");
     truck[1] = load_image("images/106.bmp");
+
+    carRL[0] = load_image("images/110.bmp");
+    carRL[1] = load_image("images/111.bmp");
+    carRL[2] = load_image("images/112.bmp");
+    carRL[3] = load_image("images/113.bmp");
+    carRL[4] = load_image("images/114.bmp");
+
+    truckRL[0] = load_image("images/115.bmp");
+    truckRL[1] = load_image("images/116.bmp");
 
     terrain[0] = load_image("images/200.bmp");
     terrain[1] = load_image("images/201.bmp");
