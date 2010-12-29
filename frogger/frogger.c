@@ -139,12 +139,7 @@ void generate_background() {
         background[i].road = get_random(0, 1);
         // generate vehicles
         background[i].speed = get_random(0, 1) ? SLOW : FAST;
-        if (get_random(0, 1)) {
-            background[i].nb_vehicles = 1;
-        }
-        else {
-            background[i].nb_vehicles = 2;
-        }
+        background[i].nb_vehicles = get_random(0, 1) ? 1 : 2;
         for (j = 0 ; j <= 1 ; j++) {
             background[i].veh[j].type = get_random(0, 1) ? CAR : TRUCK;
             background[i].veh[j].x = get_random(0, 599);
@@ -192,7 +187,6 @@ void tick() {
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
         y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         line_number = (offset/NB_PIXELS_PER_LINE) + i;
-        fprintf(stderr, "%d %d\n", line_number, NB_BANDS);
         // draw background
         if (line_number == NB_BANDS-1) { // finish line
             background_image = terrain[6];
