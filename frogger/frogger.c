@@ -71,9 +71,10 @@ void draw_text(int x, int y, const char* text) {
         unsigned c;
         for(c = 0; c != strlen(text); ++c) {
             if(text[c] < 32 || text[c] >= 96) {
-                fprintf(stderr, "bug!\n");
+                fprintf(stderr, "invalid character!\n");
                 exit(1);
             }
+            // upper left pixel in font
             Uint8* data = (Uint8*) font->pixels + 3*8*8*(text[c] - 32);
 
             int mx;
