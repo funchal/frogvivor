@@ -8,8 +8,10 @@
 
 // number of pixel per band
 #define NB_PIXELS_PER_LINE 48
+
 // number of grass/road bands before finish line
 #define NB_BANDS 15
+
 // minimum number of grass bands before first road 
 #define LAUNCH_PAD_SIZE 3
 
@@ -32,14 +34,18 @@ struct player {
     SDLKey key;
 } player[4];
 
+typedef enum { CAR = 0, TRUCK } vehicle_type;
+
 struct vehicle {
-    bool type; // 0 <-> car, 1 <-> truck
-    int abscissa; // x coordinate
+    vehicle_type type;
+    int x; // x coordinate
 };
+
+typedef enum { SLOW = 0, FAST } vehicle_speed;
 
 struct band {
     bool road; // road or grass
-    bool speed; // speed of the vehicules. 0 <-> 2px/tick, 1 <-> 3px/tick 
+    vehicle_speed speed; // speed of the vehicules
     int nb_vehicles; // 1 or 2
     struct vehicle veh[2]; // depending on nb_vehicules, 1 or 2 are used
 } background[NB_BANDS];
@@ -47,10 +53,13 @@ struct band {
 
 // the upper frog is at row maxRow
 int max_row = 0;
+
 // max row allowed for frogs. (frogs must not go up out of the screen)
 int max_row_allowed = 8;
+
 // min row allowed for frogs. (frogs must not disapear when screen scroll up)
 int min_row_allowed = 0;
+
 // screen offset in pixels
 int offset = 0;
 
@@ -108,22 +117,14 @@ void draw_text(int x, int y, const char* text) {
     SDL_UnlockSurface(screen);
 }
 
-bool bool_random() {
-    if (random()%2 == 0) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-int int_random() {
-    return random();
+long int get_random(long int min, long int max) {
+    return min + random() / (RAND_MAX / (max - min + 1) + 1);
 }
 
 // generate background and vehicles
 void generate_background() {
     int i, j, veh_length;
+    memset(background, 0, sizeof(background));
     if (NB_BANDS < LAUNCH_PAD_SIZE) {
         exit(1);
     }
@@ -132,29 +133,29 @@ void generate_background() {
     }
     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS ; ++i) {
         // fixme: change probability (for the time 1/2)
-        background[i].road = bool_random();
+        background[i].road = get_random(0, 1);
         // generate vehicles
-        background[i].speed = bool_random();
-        if (bool_random()) {
+        background[i].speed = get_random(0, 1) ? SLOW : FAST;
+        if (get_random(0, 1)) {
             background[i].nb_vehicles = 1;
         }
         else {
             background[i].nb_vehicles = 2;
         }
         for (j = 0 ; j <= 1 ; j++) {
-            background[i].veh[j].type = bool_random();
-            background[i].veh[j].abscissa = int_random()%600;
+            background[i].veh[j].type = get_random(0, 1) ? CAR : TRUCK;
+            background[i].veh[j].x = get_random(0, 599);
         }
         // vehicles must not overlap
         for (j = 0 ; j <= 1 ; j++) {
-            if (background[i].veh[1].type == 0) { // car
+            if (background[i].veh[1].type == CAR) {
                 veh_length = 80;
             }
             else { // trunk
                 veh_length = 130;
             }
-            if (background[i].veh[j].abscissa + veh_length > background[i].veh[(j+1)%2].abscissa) {
-                background[i].veh[(j+1)%2].abscissa = (background[i].veh[j].abscissa + veh_length) % 600;
+            if (background[i].veh[j].x + veh_length > background[i].veh[(j+1)%2].x) {
+                background[i].veh[(j+1)%2].x = (background[i].veh[j].x + veh_length) % 600;
             }
         }
     }
@@ -179,6 +180,7 @@ void tick() {
     int i_veh;
     int line_number; 
     int y; // distance from the top of the screen
+
     for(i = 0; i != 11; ++i) {
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
         y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
@@ -194,26 +196,29 @@ void tick() {
             background_image = terrain[0];
         }
         draw_image(0, y, background_image);
-
+                
         // draw vehicles
         if (background[line_number].road == true) { // road
             for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
-                if (background[line_number].veh[i_veh].type == 0) {
+                if (background[line_number].veh[i_veh].type == CAR) {
                     veh_image = car[0];
                 }
                 else {
                     veh_image = truck[0];
                 }
-                draw_image(background[line_number].veh[i_veh].abscissa, y+3, veh_image);
-                // update abscissa
+                draw_image(background[line_number].veh[i_veh].x, y+3, veh_image);
+                // update x coordinate
                 // 800 == screen length + 200
                 // + 150 ... - 150    for gradual display at the beginning of the line
-                if (background[line_number].speed == true) {
-                    background[line_number].veh[i_veh].abscissa = ((background[line_number].veh[i_veh].abscissa + 2 + 150) % 800) - 150;
+                int speed;
+                if (background[line_number].speed == SLOW) {
+                    speed = 2;
                 }
                 else {
-                    background[line_number].veh[i_veh].abscissa = ((background[line_number].veh[i_veh].abscissa + 3 + 150) % 800) - 150;
+                    speed = 3;
                 }
+                fprintf(stderr, "%d %d %d\n", line_number, i_veh,  background[line_number].nb_vehicles);
+                background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 150) % 800) - 150;
             }
         }
     }
