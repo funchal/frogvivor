@@ -48,7 +48,8 @@ struct band {
     vehicle_speed speed; // speed of the vehicules
     int nb_vehicles; // 1 or 2
     struct vehicle veh[2]; // depending on nb_vehicules, 1 or 2 are used
-} background[NB_BANDS];
+} // NB_BANDS-1 normal road/grass bands + 1 finish band + 1 band for easy display
+    background[NB_BANDS+1];
 
 
 // the upper frog is at row maxRow
@@ -128,10 +129,12 @@ void generate_background() {
     if (NB_BANDS < LAUNCH_PAD_SIZE) {
         exit(1);
     }
+
     for (i = 0 ; i < LAUNCH_PAD_SIZE ; ++i) {
         background[i].road = false;
     }
-    for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS ; ++i) {
+
+    for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS-1 ; ++i) {
         // fixme: change probability (for the time 1/2)
         background[i].road = get_random(0, 1);
         // generate vehicles
@@ -159,6 +162,10 @@ void generate_background() {
             }
         }
     }
+
+    for (i = NB_BANDS-1 ; i <= NB_BANDS ; ++i) {
+        background[i].road = false;
+    }
 }
 
 void tick() {
@@ -166,7 +173,7 @@ void tick() {
     if (// a frog is near the top of the screen
         ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
         // the finish line is not visible yet
-        (offset < (NB_BANDS+1)*NB_PIXELS_PER_LINE - 480)) {
+        (offset < (NB_BANDS+1)*NB_PIXELS_PER_LINE - 480 - NB_PIXELS_PER_LINE)) {
         offset++;
     }
     max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
@@ -185,8 +192,9 @@ void tick() {
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
         y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         line_number = (offset/NB_PIXELS_PER_LINE) + i;
+        fprintf(stderr, "%d %d\n", line_number, NB_BANDS);
         // draw background
-        if (line_number == NB_BANDS) { // finish line
+        if (line_number == NB_BANDS-1) { // finish line
             background_image = terrain[6];
         }
         else if (background[line_number].road == true) { // road
@@ -206,6 +214,7 @@ void tick() {
                 else {
                     veh_image = truck[0];
                 }
+                // y+3 because cars are thinner than roads
                 draw_image(background[line_number].veh[i_veh].x, y+3, veh_image);
                 // update x coordinate
                 // 800 == screen length + 200
@@ -217,7 +226,6 @@ void tick() {
                 else {
                     speed = 3;
                 }
-                fprintf(stderr, "%d %d %d\n", line_number, i_veh,  background[line_number].nb_vehicles);
                 background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 150) % 800) - 150;
             }
         }
@@ -261,6 +269,8 @@ void tick() {
             default:
                 abort();
         }
+        // collision
+        // if (player[i].position is a road and un des vehicules existant est sur moi) then die
 
         draw_image(48*(3+2*i), NB_PIXELS_PER_LINE*(9-player[i].position)+offset, image);
     }
