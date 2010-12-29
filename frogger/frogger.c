@@ -41,7 +41,9 @@ struct player {
     SDLKey key;
     int x; // x coordinate
     bool alive;
+    bool on_finish_line;
     SDL_Surface* image;
+    int score;
 } player[4];
 
 typedef enum { CAR = 0, TRUCK } vehicle_type;
@@ -65,16 +67,23 @@ struct band {
 
 
 // the upper frog is at row maxRow
-int max_row = 0;
+int max_row;
 
 // max row allowed for frogs. (frogs must not go up out of the screen)
-int max_row_allowed = 8;
+int max_row_allowed;
 
 // min row allowed for frogs. (frogs must not disapear when screen scroll up)
-int min_row_allowed = 0;
+int min_row_allowed;
 
 // screen offset in pixels
-int offset = 0;
+int offset;
+
+// true iff one frog has just won
+int end_of_race;
+
+// true iff the user want to close the application
+int quit;
+
 
 SDL_Surface* load_image(const char* filename) {
     SDL_Surface* temp;
@@ -242,6 +251,9 @@ void next_player_state(int i) {
     if (collision) {
         player[i].alive = false;
     }
+    if (player[i].position == NB_BANDS-1) {
+        player[i].on_finish_line = true;
+    }
 }
 
 void tick() {
@@ -262,6 +274,10 @@ void tick() {
     int i, i_veh;
     int line_number; 
     int y; // distance from the top of the screen
+    int nb_alive;
+    int frog_alive; // one of living frog
+    int nb_finish;
+    int frog_finish; // one of the frog on the finish line
 
     for(i = 0; i != 11; ++i) {
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
@@ -324,11 +340,43 @@ void tick() {
     }
 
     // frogs
+    nb_alive = 0;
+    frog_alive = 100; // one of living frog
+    nb_finish = 0;
+    frog_finish = 100; // one of living frog
     for(i = 0; i != 4; ++i) {
         if (player[i].alive) {
             next_player_state(i);
+            nb_alive++;
+            frog_alive = i;
+            if (player[i].on_finish_line) {
+                nb_finish++;
+                frog_finish = i;
+            }
         }
+    }
 
+    // test end of race and give points
+    if (nb_alive == 0) { // draw: no point
+        printf("draw\n");
+        end_of_race = true;
+    }
+    else if (nb_alive == 1) { // one winner
+        printf("frog %d wins!\n", frog_alive);
+        end_of_race = true;
+        player[frog_alive].score++;
+    }
+    else if (nb_finish == 1) { // one winner
+        printf("frog %d wins!\n", frog_finish);
+        end_of_race = true;
+        player[frog_finish].score++;
+    }
+    else if (nb_finish > 1) { // draw
+        printf("draw\n");
+        end_of_race = true;
+    }
+
+    for(i = 0; i != 4; ++i) {
         if (player[i].alive) {
             draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
         }
@@ -338,102 +386,29 @@ void tick() {
     draw_text(32, 16, "PLAYER 1 PLAYER 2 PLAYER 3 PLAYER 4");
 }
 
-int main(int argc, char* argv[]) {
-    (void) argc;
-    (void) argv;
+void play_one_race() {
+    Uint32 time = 0;
     int i;
 
-    // initialize SDL
-    if(SDL_Init(0) != 0) {
-        fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
-        exit(1);
-    }
+    generate_background();
 
-    // initialize audio
-    if(SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
-        fprintf(stderr, "Unable to initialize audio: %s\n", SDL_GetError());
-        exit(1);
-    }
+    max_row = 0;
+    max_row_allowed = 8;
+    min_row_allowed = 0;
+    offset = 0;
+    end_of_race = false;
 
-    if(Mix_OpenAudio(22040, AUDIO_S16SYS, 2, 4096) != 0) {
-        fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());
-        exit(1);
-    }
-
-    if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "Unable to initialize video: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    SDL_putenv("SDL_VIDEO_CENTERED=center");
-    SDL_WM_SetCaption("Frogger", "Frogger");
-    screen = SDL_SetVideoMode(640, 480, 24, SDL_HWSURFACE | SDL_DOUBLEBUF);
-    if(screen == NULL) {
-        fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
-        exit(1);
-    }
-
-    // load static resources
-    frog[0] = load_image("images/50.bmp");
-    frog[1] = load_image("images/52.bmp");
-    frog[2] = load_image("images/54.bmp");
-    frog[3] = load_image("images/56.bmp");
-
-    jump[0] = load_image("images/51.bmp");
-    jump[1] = load_image("images/53.bmp");
-    jump[2] = load_image("images/55.bmp");
-    jump[3] = load_image("images/57.bmp");
-
-    car[0] = load_image("images/100.bmp");
-    car[1] = load_image("images/101.bmp");
-    car[2] = load_image("images/102.bmp");
-    car[3] = load_image("images/103.bmp");
-    car[4] = load_image("images/104.bmp");
-
-    truck[0] = load_image("images/105.bmp");
-    truck[1] = load_image("images/106.bmp");
-
-    carRL[0] = load_image("images/110.bmp");
-    carRL[1] = load_image("images/111.bmp");
-    carRL[2] = load_image("images/112.bmp");
-    carRL[3] = load_image("images/113.bmp");
-    carRL[4] = load_image("images/114.bmp");
-
-    truckRL[0] = load_image("images/115.bmp");
-    truckRL[1] = load_image("images/116.bmp");
-
-    terrain[0] = load_image("images/200.bmp");
-    terrain[1] = load_image("images/201.bmp");
-    terrain[2] = load_image("images/202.bmp");
-    terrain[3] = load_image("images/203.bmp");
-    terrain[4] = load_image("images/204.bmp");
-    terrain[5] = load_image("images/205.bmp");
-    terrain[6] = load_image("images/206.bmp");
-
-    font = load_image("images/font.bmp");
-
-    croak = Mix_LoadWAV("sounds/4.wav");
-
-    // initial state
-    memset(player, 0, sizeof(player));
-    player[0].key = SDLK_UP;
-    player[1].key = SDLK_z;
-    player[2].key = SDLK_p;
-    player[3].key = SDLK_q;
     for (i=0 ; i < 4 ; i++) {
+        player[i].position = 0;
+        player[i].state = 0;
+        player[i].key_pressed = false;
         player[i].alive = true;
         player[i].x = 48*(3+2*i);
         player[i].image = frog[i];
+        player[i].on_finish_line = false;
     }
 
-    // generate background
-    srandom(8671);
-    generate_background();
-
-    // main synchronous loop
-    Uint32 time = 0;
-    int quit = 0;
-    while(!quit) {
+    while(!quit && !end_of_race) {
 
         // limit frames per second
         Uint32 delay = 13; // ms
@@ -479,6 +454,115 @@ int main(int argc, char* argv[]) {
                     break;
             }
         }
+    }
+}
+
+int main(int argc, char* argv[]) {
+    (void) argc;
+    (void) argv;
+    int i;
+
+    // initialise random
+    srandom(86712);
+
+    // initialize SDL
+    if(SDL_Init(0) != 0) {
+        fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    // initialize audio
+    if(SDL_InitSubSystem(SDL_INIT_AUDIO) != 0) {
+        fprintf(stderr, "Unable to initialize audio: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    if(Mix_OpenAudio(22040, AUDIO_S16SYS, 2, 4096) != 0) {
+        fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());
+        exit(1);
+    }
+
+    if(SDL_InitSubSystem(SDL_INIT_VIDEO) != 0) {
+        fprintf(stderr, "Unable to initialize video: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    SDL_putenv("SDL_VIDEO_CENTERED=center");
+    SDL_WM_SetCaption("Frogger", "Frogger");
+    screen = SDL_SetVideoMode(640, 480, 24, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    if(screen == NULL) {
+        fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
+        exit(1);
+    }
+
+    // initial state
+    memset(player, 0, sizeof(player));
+    player[0].key = SDLK_UP;
+    player[1].key = SDLK_z;
+    player[2].key = SDLK_p;
+    player[3].key = SDLK_q;
+
+    // load static resources
+    frog[0] = load_image("images/50.bmp");
+    frog[1] = load_image("images/52.bmp");
+    frog[2] = load_image("images/54.bmp");
+    frog[3] = load_image("images/56.bmp");
+
+    jump[0] = load_image("images/51.bmp");
+    jump[1] = load_image("images/53.bmp");
+    jump[2] = load_image("images/55.bmp");
+    jump[3] = load_image("images/57.bmp");
+
+    car[0] = load_image("images/100.bmp");
+    car[1] = load_image("images/101.bmp");
+    car[2] = load_image("images/102.bmp");
+    car[3] = load_image("images/103.bmp");
+    car[4] = load_image("images/104.bmp");
+
+    truck[0] = load_image("images/105.bmp");
+    truck[1] = load_image("images/106.bmp");
+
+    carRL[0] = load_image("images/110.bmp");
+    carRL[1] = load_image("images/111.bmp");
+    carRL[2] = load_image("images/112.bmp");
+    carRL[3] = load_image("images/113.bmp");
+    carRL[4] = load_image("images/114.bmp");
+
+    truckRL[0] = load_image("images/115.bmp");
+    truckRL[1] = load_image("images/116.bmp");
+
+    terrain[0] = load_image("images/200.bmp");
+    terrain[1] = load_image("images/201.bmp");
+    terrain[2] = load_image("images/202.bmp");
+    terrain[3] = load_image("images/203.bmp");
+    terrain[4] = load_image("images/204.bmp");
+    terrain[5] = load_image("images/205.bmp");
+    terrain[6] = load_image("images/206.bmp");
+
+    font = load_image("images/font.bmp");
+
+    croak = Mix_LoadWAV("sounds/4.wav");
+
+    for(i = 0; i != 4; ++i) {
+        player[i].score = 0;
+    }
+
+    // main synchronous loop
+    quit = 0;
+    while (!quit) {
+        // todo: print "ready" ... "go"
+
+        // print scores
+        // todo: print scores on the window
+        printf("scores: ");
+        for (i=0 ; i < 4 ; i++) {
+            printf("%d ", player[i].score);
+        }
+        printf("\n");
+
+        // play
+        play_one_race();
+
     }
 
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
