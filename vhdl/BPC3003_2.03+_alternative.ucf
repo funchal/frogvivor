@@ -1,0 +1,66 @@
+# 32MHz onboard oscillator
+net "clock" loc = "P89" | iostandard = LVCMOS25 | period = 31.25ns;
+
+# RS232
+net "rx"  loc = "P88" | iostandard = LVCMOS25;
+net "tx"  loc = "P90" | iostandard = LVCMOS25 | drive = 4 | slew = SLOW;
+
+# Wing AL
+net "wingAL<0>" loc = "P18";
+net "wingAL<1>" loc = "P23";
+net "wingAL<2>" loc = "P26";
+net "wingAL<3>" loc = "P33";
+net "wingAL<4>" loc = "P35";
+net "wingAL<5>" loc = "P40";
+net "wingAL<6>" loc = "P53";
+net "wingAL<7>" loc = "P57";
+
+# Wing AH
+net "wingAH<0>" loc = "P60";
+net "wingAH<1>" loc = "P62";
+net "wingAH<2>" loc = "P65";
+net "wingAH<3>" loc = "P67";
+net "wingAH<4>" loc = "P70";
+net "wingAH<5>" loc = "P79";
+net "wingAH<6>" loc = "P84";
+net "wingAH<7>" loc = "P86";
+
+# Wing BL
+net "wingBL<0>" loc = "P85";
+net "wingBL<1>" loc = "P83";
+net "wingBL<2>" loc = "P78";
+net "wingBL<3>" loc = "P71";
+net "wingBL<4>" loc = "P68";
+net "wingBL<5>" loc = "P66";
+net "wingBL<6>" loc = "P63";
+net "wingBL<7>" loc = "P61";
+
+# Wing BH
+net "wingBH<0>" loc = "P58";
+net "wingBH<1>" loc = "P54";
+net "wingBH<2>" loc = "P41";
+net "wingBH<3>" loc = "P36";
+net "wingBH<4>" loc = "P34";
+net "wingBH<5>" loc = "P32";
+net "wingBH<6>" loc = "P25";
+net "wingBH<7>" loc = "P22";
+
+# Wing CL
+net "wingCL<0>" loc = "P91";
+net "wingCL<1>" loc = "P92";
+net "wingCL<2>" loc = "P94";
+net "wingCL<3>" loc = "P95";
+net "wingCL<4>" loc = "P98";
+net "wingCL<5>" loc = "P2";
+net "wingCL<6>" loc = "P3";
+net "wingCL<7>" loc = "P4";
+
+# Wing CH
+net "wingCH<0>" loc = "P5";
+net "wingCH<1>" loc = "P9";
+net "wingCH<2>" loc = "P10";
+net "wingCH<3>" loc = "P11";
+net "wingCH<4>" loc = "P12";
+net "wingCH<5>" loc = "P15";
+net "wingCH<6>" loc = "P16";
+net "wingCH<7>" loc = "P17";

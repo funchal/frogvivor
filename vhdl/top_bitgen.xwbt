@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=/home/funchal/fpga/vhdl/top.ncd
+OUTFILE=/home/funchal/fpga/vhdl/top.bit
+FAMILY=Spartan3E
+PART=xc3s250e-4vq100
+WORKINGDIR=/home/funchal/fpga/vhdl
+LICENSE=WebPack
+USER_INFO=0_0_570
