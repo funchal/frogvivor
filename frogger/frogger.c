@@ -15,6 +15,11 @@
 // minimum number of grass bands before first road 
 #define LAUNCH_PAD_SIZE 3
 
+// LENGTH OF A FROG, A CAR, A TRUCK
+#define FROG_LENGTH 48
+#define CAR_LENGTH 80
+#define TRUCK_LENGTH 130
+
 // static resources
 SDL_Surface* screen;
 SDL_Surface* frog[4];
@@ -34,6 +39,9 @@ struct player {
     int state;
     int key_pressed;
     SDLKey key;
+    int x; // x coordinate
+    bool alive;
+    SDL_Surface* image;
 } player[4];
 
 typedef enum { CAR = 0, TRUCK } vehicle_type;
@@ -152,10 +160,10 @@ void generate_background() {
         // vehicles must not overlap
         for (j = 0 ; j <= 1 ; j++) {
             if (background[i].veh[1].type == CAR) {
-                veh_length = 80;
+                veh_length = CAR_LENGTH;
             }
             else { // trunk
-                veh_length = 130;
+                veh_length = TRUCK_LENGTH;
             }
             if (background[i].veh[j].x + veh_length > background[i].veh[(j+1)%2].x) {
                 background[i].veh[(j+1)%2].x = (background[i].veh[j].x + veh_length) % 600;
@@ -165,6 +173,74 @@ void generate_background() {
 
     for (i = NB_BANDS-1 ; i <= NB_BANDS ; ++i) {
         background[i].road = false;
+    }
+}
+
+bool overlap(int ax, int al, int bx, int bl) {
+    if ((bx > ax+al) || (bx+bl < ax)) {
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+void next_player_state(int i) {
+    int i_veh;
+    bool collision;
+    int veh_length;
+    int row;
+
+    switch(player[i].state) {
+    case 9:
+    case 0:
+        player[i].state = 0;
+        player[i].image = frog[i];
+        if( // normal jump
+           (player[i].key_pressed && (player[i].position < max_row_allowed)) ||
+           // emergency jump
+           (player[i].position < min_row_allowed) )
+            {
+                player[i].state++;
+                player[i].position++;
+                Mix_PlayChannel(-1, croak, 0);
+                if(player[i].position > max_row) {
+                    max_row = player[i].position;
+                }
+            }
+        break;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+        player[i].image = jump[i];
+        player[i].state++;
+                break;
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+        player[i].image = frog[i];
+        player[i].state++;
+        break;
+    default:
+        abort();
+    }
+
+    // collision
+    collision = false;
+    row = player[i].position;
+    if (background[row].road) {
+        for (i_veh = 0 ; i_veh < background[row].nb_vehicles ; ++i_veh) {
+            veh_length = background[row].veh[i_veh].type == CAR ? 80 : 130;
+            if (overlap(player[i].x, FROG_LENGTH, background[row].veh[i_veh].x, veh_length)) {
+                collision = true;
+            }
+            
+        }
+    }
+    if (collision) {
+        player[i].alive = false;
     }
 }
 
@@ -183,8 +259,7 @@ void tick() {
     // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
     SDL_Surface* background_image;
     SDL_Surface* veh_image;
-    int i;
-    int i_veh;
+    int i, i_veh;
     int line_number; 
     int y; // distance from the top of the screen
 
@@ -249,47 +324,14 @@ void tick() {
     }
 
     // frogs
-    SDL_Surface* image;
     for(i = 0; i != 4; ++i) {
-        switch(player[i].state) {
-            case 9:
-            case 0:
-                player[i].state = 0;
-                image = frog[i];
-                if( // normal jump
-                    (player[i].key_pressed && (player[i].position < max_row_allowed)) ||
-                    // emergency jump
-                    (player[i].position < min_row_allowed) )
-                {
-                    player[i].state++;
-                    player[i].position++;
-                    Mix_PlayChannel(-1, croak, 0);
-                    if(player[i].position > max_row) {
-                        max_row = player[i].position;
-                    }
-                }
-                break;
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-                image = jump[i];
-                player[i].state++;
-                break;
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-                image = frog[i];
-                player[i].state++;
-                break;
-            default:
-                abort();
+        if (player[i].alive) {
+            next_player_state(i);
         }
-        // collision
-        // if (player[i].position is a road and un des vehicules existant est sur moi) then die
 
-        draw_image(48*(3+2*i), NB_PIXELS_PER_LINE*(9-player[i].position)+offset, image);
+        if (player[i].alive) {
+            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+        }
     }
 
     // text
@@ -299,6 +341,7 @@ void tick() {
 int main(int argc, char* argv[]) {
     (void) argc;
     (void) argv;
+    int i;
 
     // initialize SDL
     if(SDL_Init(0) != 0) {
@@ -377,13 +420,17 @@ int main(int argc, char* argv[]) {
     player[1].key = SDLK_z;
     player[2].key = SDLK_p;
     player[3].key = SDLK_q;
+    for (i=0 ; i < 4 ; i++) {
+        player[i].alive = true;
+        player[i].x = 48*(3+2*i);
+        player[i].image = frog[i];
+    }
 
     // generate background
     srandom(8671);
     generate_background();
 
     // main synchronous loop
-    int i;
     Uint32 time = 0;
     int quit = 0;
     while(!quit) {
