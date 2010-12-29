@@ -42,9 +42,11 @@ struct vehicle {
 };
 
 typedef enum { SLOW = 0, FAST } vehicle_speed;
+typedef enum { LR = 0, RL } road_direction; // from left to right or vice-versa
 
 struct band {
     bool road; // road or grass
+    road_direction direction;
     vehicle_speed speed; // speed of the vehicules
     int nb_vehicles; // 1 or 2
     struct vehicle veh[2]; // depending on nb_vehicules, 1 or 2 are used
@@ -137,6 +139,7 @@ void generate_background() {
     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS-1 ; ++i) {
         // fixme: change probability (for the time 1/2)
         background[i].road = get_random(0, 1);
+        background[i].direction = get_random(0, 1) ? LR : RL;
         // generate vehicles
         background[i].speed = get_random(0, 1) ? SLOW : FAST;
         background[i].nb_vehicles = get_random(0, 1) ? 1 : 2;
@@ -220,7 +223,15 @@ void tick() {
                 else {
                     speed = 3;
                 }
-                background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 150) % 800) - 150;
+                if (background[line_number].direction == LR) {
+                    background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 200) % 1000) - 200;
+                }
+                else {
+                    background[line_number].veh[i_veh].x -= speed;
+                    if (background[line_number].veh[i_veh].x < -200) {
+                        background[line_number].veh[i_veh].x += 1000;
+                    }
+                }
             }
         }
     }
@@ -347,7 +358,7 @@ int main(int argc, char* argv[]) {
     player[3].key = SDLK_q;
 
     // generate background
-    srandom(867);
+    srandom(8671);
     generate_background();
 
     // main synchronous loop
