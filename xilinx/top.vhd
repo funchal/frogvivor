@@ -1,3 +1,6 @@
+-- Giovanni Funchal <gafunchal@gmail.com>
+-- Laurie Lugrin <marmottine@gmail.com>
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
