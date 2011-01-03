@@ -1,0 +1,8 @@
+INTSTYLE=ise
+INFILE=/home/funchal/frogvivor/xilinx/audio.ncd
+OUTFILE=/home/funchal/frogvivor/xilinx/audio.bit
+FAMILY=Spartan3E
+PART=xc3s250e-4vq100
+WORKINGDIR=/home/funchal/frogvivor/xilinx
+LICENSE=WebPack
+USER_INFO=0_0_570

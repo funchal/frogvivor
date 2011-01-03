@@ -22,7 +22,9 @@
   <sourceproject xmlns="http://www.xilinx.com/XMLSchema" xil_pn:fileType="FILE_XISE" xil_pn:name="project.xise"/>
 
   <files xmlns="http://www.xilinx.com/XMLSchema">
+    <file xil_pn:fileType="FILE_NCD" xil_pn:name="audio_guide.ncd" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_UCF" xil_pn:name="dcm32to28_arwz.ucf" xil_pn:origination="imported"/>
+    <file xil_pn:fileType="FILE_UCF" xil_pn:name="dcm32to80_arwz.ucf" xil_pn:origination="imported"/>
     <file xil_pn:fileType="FILE_NCD" xil_pn:name="top_guide.ncd" xil_pn:origination="imported"/>
   </files>
 
