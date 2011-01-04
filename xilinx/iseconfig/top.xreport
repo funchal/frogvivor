@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2011-01-03T12:07:35</DateModified>
+  <DateModified>2011-01-04T21:18:25</DateModified>
   <ModuleName>top</ModuleName>
-  <SummaryTimeStamp>Unknown</SummaryTimeStamp>
+  <SummaryTimeStamp>2011-01-04T20:43:43</SummaryTimeStamp>
   <SavedFilePath>/home/funchal/frogvivor/xilinx/iseconfig/top.xreport</SavedFilePath>
   <ImplementationReportsDirectory>/home/funchal/frogvivor/xilinx/</ImplementationReportsDirectory>
   <DateInitialized>2010-12-29T19:07:34</DateInitialized>

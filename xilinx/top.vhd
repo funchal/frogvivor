@@ -116,8 +116,8 @@ begin
             y         => y
         );
 
-    red <= x(5 downto 0);
-    green <= (others => x(5) and y(3));
+    red <= (others => x(6));
+    green <= (others => x(7));
     blue <= y(8 downto 3);
     
     reset <= '0';

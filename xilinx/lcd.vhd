@@ -14,7 +14,7 @@ entity lcd is
         constant THP   : integer :=  96; -- sync pulse width
         constant TEP   : integer := 640; -- enable pulse width
         constant TV    : integer := 525; -- vertical cycles
-        constant TVS   : integer :=  34; -- data setup time
+        constant TVS   : integer :=  42; -- data setup time
         constant TVP   : integer :=   8; -- sync pulse width
         constant TVD   : integer := 480  -- display data width
     );
