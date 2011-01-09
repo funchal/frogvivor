@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-//#include <rand.h>
 
 // number of pixel per band
 #define NB_PIXELS_PER_LINE 48
@@ -31,12 +30,13 @@
 SDL_Surface* screen;
 SDL_Surface* frog[4];
 SDL_Surface* jump[4]; 
-SDL_Surface* splat;
-SDL_Surface* car[5];
+SDL_Surface* splat[4];
+SDL_Surface* car[4];
 SDL_Surface* truck[2];
 SDL_Surface* carRL[5];
 SDL_Surface* truckRL[2];
-SDL_Surface* terrain[7];
+SDL_Surface* grass;
+SDL_Surface* road;
 SDL_Surface* font;
 
 Mix_Chunk* croak;
@@ -97,8 +97,7 @@ int end_of_race;
 // true iff the user want to close the application
 int quit;
 
-
-SDL_Surface* load_image(const char* filename) {
+SDL_Surface* load_image(const char* filename, Uint8 R, Uint8 G, Uint8 B) {
     SDL_Surface* temp;
     temp = SDL_LoadBMP(filename);
     if(temp == NULL) {
@@ -108,6 +107,20 @@ SDL_Surface* load_image(const char* filename) {
     SDL_Surface* image = SDL_DisplayFormat(temp);
     SDL_FreeSurface(temp);
     SDL_SetColorKey(image, SDL_SRCCOLORKEY, SDL_MapRGB(image->format, 0, 0, 0));
+    SDL_LockSurface(image);
+    int i;
+    for(i = 0; i != image->w * image->h; ++i) {
+        Uint8* data = (Uint8*) image->pixels;
+        Uint8* r = &data[3*i];
+        Uint8* g = &data[3*i+1];
+        Uint8* b = &data[3*i+2];
+        if(*r < 200) {
+        *r *= 1-R/255.0;
+        *g *= 1-G/255.0;
+        *b *= 1-B/255.0;
+        }
+    }
+    SDL_UnlockSurface(image);
     return image;
 }
 
@@ -299,13 +312,13 @@ void tick() {
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
         if (line_number == NB_BANDS-1) { // finish line
-            background_image = terrain[0];
+            background_image = grass;
         }
         else if (background[line_number].road == true) { // road
-            background_image = terrain[1];
+            background_image = road;
         }
         else { // grass
-            background_image = terrain[0];
+            background_image = grass;
         }
         draw_image(0, y, background_image);
         if (line_number == NB_BANDS-1 && y == 0) { // finish line on the top (not lower nor higher!)
@@ -356,7 +369,7 @@ void tick() {
             draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
         }
         else {
-            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat);
+            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat[i]);
         }
     }
 
@@ -537,45 +550,44 @@ int main(int argc, char* argv[]) {
     player[3].key = SDLK_q;
 
     // load static resources
-    frog[0] = load_image("images/50.bmp");
-    frog[1] = load_image("images/52.bmp");
-    frog[2] = load_image("images/54.bmp");
-    frog[3] = load_image("images/56.bmp");
+    frog[0] = load_image("images/50.bmp", 0, 128, 0);
+    frog[1] = load_image("images/50.bmp", 0, 0, 128);
+    frog[2] = load_image("images/50.bmp", 128, 0, 0);
+    frog[3] = load_image("images/50.bmp", 0, 128, 128);
 
-    jump[0] = load_image("images/51.bmp");
-    jump[1] = load_image("images/53.bmp");
-    jump[2] = load_image("images/55.bmp");
-    jump[3] = load_image("images/57.bmp");
+    jump[0] = load_image("images/51.bmp", 0, 128, 0);
+    jump[1] = load_image("images/51.bmp", 0, 0, 128);
+    jump[2] = load_image("images/51.bmp", 128, 0, 0);
+    jump[3] = load_image("images/51.bmp", 0, 128, 128);
 
-    splat = load_image("images/splat.bmp");
+    splat[0] = load_image("images/splat.bmp", 0, 128, 0);
+    splat[1] = load_image("images/splat.bmp", 0, 0, 128);
+    splat[2] = load_image("images/splat.bmp", 128, 0, 0);
+    splat[3] = load_image("images/splat.bmp", 0, 128, 128);
 
-    car[0] = load_image("images/100.bmp");
-    car[1] = load_image("images/101.bmp");
-    car[2] = load_image("images/102.bmp");
-    car[3] = load_image("images/103.bmp");
-    car[4] = load_image("images/104.bmp");
+    car[0] = load_image("images/103.bmp", 0, 128, 0);
+    car[1] = load_image("images/103.bmp", 0, 0, 128);
+    car[2] = load_image("images/103.bmp", 128, 0, 0);
+    car[3] = load_image("images/103.bmp", 0, 128, 128);
 
-    truck[0] = load_image("images/105.bmp");
-    truck[1] = load_image("images/106.bmp");
+    truck[0] = load_image("images/105.bmp", 0, 128, 0);
+    truck[1] = load_image("images/105.bmp", 0, 0, 128);
+    truck[2] = load_image("images/105.bmp", 128, 0, 0);
+    truck[3] = load_image("images/105.bmp", 0, 128, 128);
 
-    carRL[0] = load_image("images/110.bmp");
-    carRL[1] = load_image("images/111.bmp");
-    carRL[2] = load_image("images/112.bmp");
-    carRL[3] = load_image("images/113.bmp");
-    carRL[4] = load_image("images/114.bmp");
+    carRL[0] = load_image("images/113.bmp", 0, 128, 0);
+    carRL[1] = load_image("images/113.bmp", 0, 0, 128);
+    carRL[2] = load_image("images/113.bmp", 128, 0, 0);
+    carRL[3] = load_image("images/113.bmp", 0, 128, 128);
 
-    truckRL[0] = load_image("images/115.bmp");
-    truckRL[1] = load_image("images/116.bmp");
+    truckRL[0] = load_image("images/115.bmp", 0, 128, 0);
+    truckRL[1] = load_image("images/115.bmp", 0, 0, 128);
+    truckRL[2] = load_image("images/115.bmp", 128, 0, 0);
+    truckRL[3] = load_image("images/115.bmp", 0, 128, 128);
 
-    terrain[0] = load_image("images/200.bmp");
-    terrain[1] = load_image("images/201.bmp");
-    terrain[2] = load_image("images/202.bmp");
-    terrain[3] = load_image("images/203.bmp");
-    terrain[4] = load_image("images/204.bmp");
-    terrain[5] = load_image("images/205.bmp");
-    terrain[6] = load_image("images/206.bmp");
-
-    font = load_image("images/font.bmp");
+    grass = load_image("images/200.bmp", 0, 0, 0);
+    road  = load_image("images/201.bmp", 0, 0, 0);
+    font  = load_image("images/font.bmp", 0, 0, 0);
 
     croak = Mix_LoadWAV("sounds/4.wav");
 
@@ -600,7 +612,7 @@ int main(int argc, char* argv[]) {
         SDL_FreeSurface(jump[i]);
     }
 
-    for(i = 0; i != 5; ++i) {
+    for(i = 0; i != 4; ++i) {
         SDL_FreeSurface(car[i]);
     }
 
@@ -608,10 +620,8 @@ int main(int argc, char* argv[]) {
         SDL_FreeSurface(truck[i]);
     }
 
-    for(i = 0; i != 7; ++i) {
-        SDL_FreeSurface(terrain[i]);
-    }
-
+    SDL_FreeSurface(grass);
+    SDL_FreeSurface(road);
     SDL_FreeSurface(font);
 
     Mix_CloseAudio();
