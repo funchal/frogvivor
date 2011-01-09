@@ -351,13 +351,13 @@ void tick() {
         }
     }
 
+    // draw vehicles
     for(i = 0; i != 11; ++i) {
         // distance from the top of the screen
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
         int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
-
-        // draw vehicles
+        
         if (background[line_number].road == true) { // road
             for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
                 if (background[line_number].veh[i_veh].type == CAR) {
@@ -376,10 +376,8 @@ void tick() {
                         veh_image = truckRL[0];
                     }
                 }
-                draw_image(background[line_number].veh[i_veh].x, y, veh_image);
-                // update x coordinate
-                // 800 == screen length + 200
-                // + 150 ... - 150    for gradual display at the beginning of the line
+
+                // calculate speed
                 int speed;
                 if (background[line_number].speed == SLOW) {
                     speed = 2;
@@ -387,15 +385,23 @@ void tick() {
                 else {
                     speed = 3;
                 }
+
+                // update x coordinate
                 if (background[line_number].direction == LR) {
-                    background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 200) % 1000) - 200;
+                    background[line_number].veh[i_veh].x += speed;
                 }
                 else {
                     background[line_number].veh[i_veh].x -= speed;
-                    if (background[line_number].veh[i_veh].x < -200) {
-                        background[line_number].veh[i_veh].x += 1000;
-                    }
                 }
+
+                // wrap cars
+                background[line_number].veh[i_veh].x %= 1000;
+                if(background[line_number].veh[i_veh].x < 0) {
+                    background[line_number].veh[i_veh].x += 1000;
+                }
+
+                // draw cars
+                draw_image(background[line_number].veh[i_veh].x-200, y, veh_image);
             }
         }
     }
