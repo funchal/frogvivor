@@ -169,7 +169,6 @@ void generate_background() {
     }
 
     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS-1 ; ++i) {
-        int veh_length[2];
         // fixme: change probability (for the time 1/2)
         background[i].road = get_random(0, 1);
         background[i].direction = get_random(0, 1) ? LR : RL;
@@ -255,7 +254,7 @@ void next_player_state(int i) {
     row = player[i].position;
     if (background[row].road) {
         for (i_veh = 0 ; i_veh < background[row].nb_vehicles ; ++i_veh) {
-            veh_length = background[row].veh[i_veh].type == CAR ? CAR_LENGTH : TRUCK_LENGTH;
+            veh_length = background[row].veh[i_veh].length;
             // -180 because x coord of vehicles is staggered with 180 pixels
             if (overlap(player[i].x, FROG_LENGTH, background[row].veh[i_veh].x-180, veh_length)) {
                 collision = true;
