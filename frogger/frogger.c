@@ -45,7 +45,7 @@ Mix_Chunk* croak;
 struct player {
     int position;
     int state;
-    int key_pressed;
+    bool key_pressed;
     SDLKey key;
     int x; // x coordinate
     bool alive;
@@ -80,6 +80,8 @@ struct band {
     background[NB_BANDS+1];
 
 
+enum { INIT, PICK, GAME, WINNER } game_state;
+
 // the upper frog is at row maxRow
 int max_row;
 
@@ -93,10 +95,7 @@ int min_row_allowed;
 int offset;
 
 // true iff one frog has just won
-int end_of_race;
-
-// true iff the user want to close the application
-int quit;
+//bool end_of_race;
 
 SDL_Surface* load_image(const char* filename, Uint8 R, Uint8 G, Uint8 B) {
     SDL_Surface* temp;
@@ -172,6 +171,11 @@ long int get_random(long int min, long int max) {
 
 // generate background and vehicles
 void generate_background() {
+    max_row = 0;
+    max_row_allowed = 8;
+    min_row_allowed = 0;
+    offset = 0;
+
     int i, j;
     memset(background, 0, sizeof(background));
     if (NB_BANDS < LAUNCH_PAD_SIZE) {
@@ -287,26 +291,12 @@ void next_player_state(int i) {
     }
 }
 
-void tick() {
-    // scrolling
-    if (// a frog is near the top of the screen
-        ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
-        // the finish line is not visible yet
-        (offset < (NB_BANDS+1)*NB_PIXELS_PER_LINE - 480 - NB_PIXELS_PER_LINE)) {
-        offset++;
-    }
-    max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
-    min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
+int pick_count;
 
-    // background
+void draw_background() {
     // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
     SDL_Surface* background_image;
-    SDL_Surface* veh_image;
     int i, i_veh;
-    int nb_alive;
-    int frog_alive; // one of living frog
-    int nb_finish;
-    int frog_finish; // one of the frog on the finish line
     char buffer[60];
 
     for(i = 0; i != 11; ++i) {
@@ -330,182 +320,178 @@ void tick() {
             draw_text(268, 16, buffer);
         }                
     }
-
-    // frogs
-    nb_alive = 0;
-    frog_alive = 100; // one of living frog
-    nb_finish = 0;
-    frog_finish = 100; // one of living frog
-    for(i = 0; i != 4; ++i) {
-        if (player[i].alive) {
-            next_player_state(i);
-            nb_alive++;
-            frog_alive = i;
-            if (player[i].on_finish_line) {
-                nb_finish++;
-                frog_finish = i;
-            }
-        }
-    }
-
-    // test end of race and give points
-    if (nb_alive == 0) { // draw: no point
-        printf("draw\n");
-        end_of_race = true;
-    }
-    else if (nb_alive == 1) { // one winner
-        printf("frog %d wins!\n", frog_alive);
-        end_of_race = true;
-        player[frog_alive].score++;
-    }
-    else if (nb_finish == 1) { // one winner
-        printf("frog %d wins!\n", frog_finish);
-        end_of_race = true;
-        player[frog_finish].score++;
-    }
-    else if (nb_finish > 1) { // draw
-        printf("draw\n");
-        end_of_race = true;
-    }
-
-    for(i = 0; i != 4; ++i) {
-        if (player[i].alive) {
-            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
-        }
-        else {
-            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat[i]);
-        }
-    }
-
-    // draw vehicles
-    for(i = 0; i != 11; ++i) {
-        // distance from the top of the screen
-        // y = (total height) - (piece of first line) - (full lines between 1 and i)
-        int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
-        int line_number = (offset/NB_PIXELS_PER_LINE) + i;
-        
-        if (background[line_number].road == true) { // road
-            for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
-                int color = background[line_number].veh[i_veh].color;
-                if (background[line_number].veh[i_veh].type == CAR) {
-                    if (background[line_number].direction == LR) {
-                        veh_image = car[color];
-                    }
-                    else {
-                        veh_image = carRL[color];
-                    }
-                }
-                else {
-                    if (background[line_number].direction == LR) {
-                        veh_image = truck[color];
-                    }
-                    else {
-                        veh_image = truckRL[color];
-                    }
-                }
-
-                // calculate speed
-                int speed;
-                if (background[line_number].speed == SLOW) {
-                    speed = 2;
-                }
-                else {
-                    speed = 3;
-                }
-
-                // update x coordinate
-                if (background[line_number].direction == LR) {
-                    background[line_number].veh[i_veh].x += speed;
-                }
-                else {
-                    background[line_number].veh[i_veh].x -= speed;
-                }
-
-                // wrap cars
-                background[line_number].veh[i_veh].x %= 1000;
-                if(background[line_number].veh[i_veh].x < 0) {
-                    background[line_number].veh[i_veh].x += 1000;
-                }
-
-                // draw cars
-                draw_image(background[line_number].veh[i_veh].x-180, y, veh_image);
-            }
-        }
-    }
-
-    // text
-    sprintf(buffer, "%2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
-    draw_text(152, 480-24, buffer);
 }
 
-void play_one_race() {
-    Uint32 time = 0;
-    int i;
-
-    generate_background();
-
-    max_row = 0;
-    max_row_allowed = 8;
-    min_row_allowed = 0;
-    offset = 0;
-    end_of_race = false;
-
-    for (i=0 ; i < 4 ; i++) {
-        player[i].position = 0;
-        player[i].state = 0;
-        player[i].key_pressed = false;
-        player[i].alive = true;
-        player[i].x = 48*(4+2*i) + OFFSET_FIRST_VERTICAL_LINE;
-        player[i].image = frog[i];
-        player[i].on_finish_line = false;
-    }
-
-    while(!quit && !end_of_race) {
-
-        // limit frames per second
-        Uint32 delay = 13; // ms
-        Uint32 curr = SDL_GetTicks() - time;
-        if(curr < delay) {
-            SDL_Delay(delay - curr);
-        }
-        time = SDL_GetTicks();
-
-        // calculate next frame
-        tick();
-
-        // flip screen buffer
-        if(SDL_Flip(screen) != 0) {
-            fprintf(stderr, "Failed to swap the buffers: %s", SDL_GetError());
-            exit(1);
-        }
-
-        // handle asynchronous events
-        SDL_Event event;
-        while(SDL_PollEvent(&event)) {
-            switch(event.type) {
-                case SDL_KEYUP:
-                    for(i = 0; i != 4; ++i) {
-                        if(event.key.keysym.sym == player[i].key) {
-                            player[i].key_pressed = 0;
-                        }
-                    }
-                    break;
-                case SDL_KEYDOWN:
-                    for(i = 0; i != 4; ++i) {
-                        if(event.key.keysym.sym == player[i].key) {
-                            player[i].key_pressed = 1;
-                        }
-                    }
-                    if(event.key.keysym.sym == SDLK_ESCAPE) {
-                        quit = 1;
-                    }
-                    break;
-                case SDL_QUIT:
-                    quit = 1;
-                default:
-                    break;
+void tick() {
+    switch(game_state) {
+        case INIT: {
+            int i;
+            for (i=0 ; i < 4 ; i++) {
+                player[i].position = 0;
+                player[i].state = 0;
+                player[i].key_pressed = false;
+                player[i].alive = true;
+                player[i].x = 48*(4+2*i) + OFFSET_FIRST_VERTICAL_LINE;
+                player[i].image = frog[i];
+                player[i].on_finish_line = false;
             }
+
+            generate_background();
+
+            pick_count = 0;
+            game_state = PICK;
+            }
+            break;
+        case PICK:
+            // background
+            draw_background();
+
+            draw_text(200, 220, "PICK YOUR FROG!");
+            pick_count++;
+            if(pick_count == 200) {
+                game_state = GAME;
+                pick_count = 0;
+            }
+            break;
+        case GAME: {
+    int nb_alive;
+    int frog_alive; // one of living frog
+    int nb_finish;
+    int frog_finish; // one of the frog on the finish line
+
+
+            // scrolling
+            if (// a frog is near the top of the screen
+                ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
+                // the finish line is not visible yet
+                (offset < (NB_BANDS+1)*NB_PIXELS_PER_LINE - 480 - NB_PIXELS_PER_LINE)) {
+                offset++;
+            }
+            max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
+            min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
+
+            // background
+            draw_background();
+
+            // frogs
+            nb_alive = 0;
+            frog_alive = 100; // one of living frog
+            nb_finish = 0;
+            frog_finish = 100; // one of living frog
+            int i, i_veh;
+            SDL_Surface* veh_image;
+            for(i = 0; i != 4; ++i) {
+                if (player[i].alive) {
+                    next_player_state(i);
+                    nb_alive++;
+                    frog_alive = i;
+                    if (player[i].on_finish_line) {
+                        nb_finish++;
+                        frog_finish = i;
+                    }
+                }
+            }
+
+            // test end of race and give points
+            if (nb_alive == 0) { // draw: no point
+                printf("draw\n");
+                game_state = WINNER;
+            }
+            else if (nb_alive == 1) { // one winner
+                printf("frog %d wins!\n", frog_alive);
+                game_state = WINNER;
+                player[frog_alive].score++;
+            }
+            else if (nb_finish == 1) { // one winner
+                printf("frog %d wins!\n", frog_finish);
+                game_state = WINNER;
+                player[frog_finish].score++;
+            }
+            else if (nb_finish > 1) { // draw
+                printf("draw\n");
+                game_state = WINNER;
+            }
+
+            for(i = 0; i != 4; ++i) {
+                if (player[i].alive) {
+                    draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+                }
+                else {
+                    draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat[i]);
+                }
+            }
+
+            // draw vehicles
+            for(i = 0; i != 11; ++i) {
+                // distance from the top of the screen
+                // y = (total height) - (piece of first line) - (full lines between 1 and i)
+                int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
+                int line_number = (offset/NB_PIXELS_PER_LINE) + i;
+                
+                if (background[line_number].road == true) { // road
+                    for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
+                        int color = background[line_number].veh[i_veh].color;
+                        if (background[line_number].veh[i_veh].type == CAR) {
+                            if (background[line_number].direction == LR) {
+                                veh_image = car[color];
+                            }
+                            else {
+                                veh_image = carRL[color];
+                            }
+                        }
+                        else {
+                            if (background[line_number].direction == LR) {
+                                veh_image = truck[color];
+                            }
+                            else {
+                                veh_image = truckRL[color];
+                            }
+                        }
+
+                        // calculate speed
+                        int speed;
+                        if (background[line_number].speed == SLOW) {
+                            speed = 2;
+                        }
+                        else {
+                            speed = 3;
+                        }
+
+                        // update x coordinate
+                        if (background[line_number].direction == LR) {
+                            background[line_number].veh[i_veh].x += speed;
+                        }
+                        else {
+                            background[line_number].veh[i_veh].x -= speed;
+                        }
+
+                        // wrap cars
+                        background[line_number].veh[i_veh].x %= 1000;
+                        if(background[line_number].veh[i_veh].x < 0) {
+                            background[line_number].veh[i_veh].x += 1000;
+                        }
+
+                        // draw cars
+                        draw_image(background[line_number].veh[i_veh].x-180, y, veh_image);
+                    }
+                }
+            }
+
+            // text
+            char buffer[60];
+            sprintf(buffer, "%2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
+            draw_text(152, 480-24, buffer);
         }
+            break;
+        case WINNER:
+            draw_text(300, 220, "WINNER!");
+            pick_count++;
+            if(pick_count == 200) {
+                game_state = INIT;
+            }
+            break;
+        default:
+            break;
     }
 }
 
@@ -596,18 +582,57 @@ int main(int argc, char* argv[]) {
 
     croak = Mix_LoadWAV("sounds/4.wav");
 
-    for(i = 0; i != 4; ++i) {
-        player[i].score = 0;
-    }
+    game_state = INIT;
 
     // main synchronous loop
-    quit = 0;
-    while (!quit) {
-        // todo: print "ready" ... "go"
+    bool quit = false;
+    Uint32 time = 0;
+    while(!quit) {
 
-        // play
-        play_one_race();
+        // limit frames per second
+        Uint32 delay = 13; // ms
+        Uint32 curr = SDL_GetTicks() - time;
+        if(curr < delay) {
+            SDL_Delay(delay - curr);
+        }
+        time = SDL_GetTicks();
 
+        // calculate next frame
+        tick();
+
+        // flip screen buffer
+        if(SDL_Flip(screen) != 0) {
+            fprintf(stderr, "Failed to swap the buffers: %s", SDL_GetError());
+            exit(1);
+        }
+
+        // handle asynchronous events
+        SDL_Event event;
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_KEYUP:
+                    for(i = 0; i != 4; ++i) {
+                        if(event.key.keysym.sym == player[i].key) {
+                            player[i].key_pressed = 0;
+                        }
+                    }
+                    break;
+                case SDL_KEYDOWN:
+                    for(i = 0; i != 4; ++i) {
+                        if(event.key.keysym.sym == player[i].key) {
+                            player[i].key_pressed = 1;
+                        }
+                    }
+                    if(event.key.keysym.sym == SDLK_ESCAPE) {
+                        quit = 1;
+                    }
+                    break;
+                case SDL_QUIT:
+                    quit = 1;
+                default:
+                    break;
+            }
+        }
     }
 
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
