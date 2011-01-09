@@ -32,9 +32,9 @@ SDL_Surface* frog[4];
 SDL_Surface* jump[4]; 
 SDL_Surface* splat[4];
 SDL_Surface* car[4];
-SDL_Surface* truck[2];
+SDL_Surface* truck[4];
 SDL_Surface* carRL[5];
-SDL_Surface* truckRL[2];
+SDL_Surface* truckRL[4];
 SDL_Surface* grass;
 SDL_Surface* road;
 SDL_Surface* font;
@@ -58,6 +58,7 @@ typedef enum { CAR = 0, TRUCK } vehicle_type;
 
 struct vehicle {
     vehicle_type type;
+    int color; // between 0 and 3 if car
     // x coordinate over 1000 pixels
     // 1000 px is larger than the screen width because vehicules rotate
     // screen goes from pixel 180 to pixel 1000-180-1
@@ -189,6 +190,7 @@ void generate_background() {
         background[i].speed = get_random(0, 1) ? SLOW : FAST;
         background[i].nb_vehicles = get_random(0, 1) ? 1 : 2;
         for (j = 0 ; j <= 1 ; j++) {
+            // type: car or truck
             if (get_random(0, 1)) {
                 background[i].veh[j].type = CAR;
                 background[i].veh[j].length = CAR_LENGTH;
@@ -197,6 +199,8 @@ void generate_background() {
                 background[i].veh[j].type = TRUCK;
                 background[i].veh[j].length = TRUCK_LENGTH;
             }
+            // color: from 0 to 3
+            background[i].veh[j].color = get_random(0, 3);
         }
         // first vehicle coordinate
         background[i].veh[0].x = get_random(0, 1000 - 1);
@@ -383,11 +387,12 @@ void tick() {
         if (background[line_number].road == true) { // road
             for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
                 if (background[line_number].veh[i_veh].type == CAR) {
+                    int color = background[line_number].veh[i_veh].color;
                     if (background[line_number].direction == LR) {
-                        veh_image = car[3];
+                        veh_image = car[color];
                     }
                     else {
-                        veh_image = carRL[3];
+                        veh_image = carRL[color];
                     }
                 }
                 else {
@@ -616,7 +621,7 @@ int main(int argc, char* argv[]) {
         SDL_FreeSurface(car[i]);
     }
 
-    for(i = 0; i != 2; ++i) {
+    for(i = 0; i != 4; ++i) {
         SDL_FreeSurface(truck[i]);
     }
 
