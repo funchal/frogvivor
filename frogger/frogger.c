@@ -554,6 +554,14 @@ int main(int argc, char* argv[]) {
     while (!quit) {
         // todo: print "ready" ... "go"
 
+        // print scores
+        // todo: print scores on the window
+        printf("scores: ");
+        for (i=0 ; i < 4 ; i++) {
+            printf("%d ", player[i].score);
+        }
+        printf("\n");
+
         // play
         play_one_race();
 
