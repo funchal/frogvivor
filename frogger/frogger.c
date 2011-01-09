@@ -19,6 +19,9 @@
 // minimum number of grass bands before first road 
 #define LAUNCH_PAD_SIZE 3
 
+// minimum distance between two vehicles on the same road
+#define MIN_DISTANCE_BETWEEN_VEHICLES 96
+
 // LENGTH OF A FROG, A CAR, A TRUCK
 #define FROG_LENGTH 48
 #define CAR_LENGTH 96
@@ -59,6 +62,8 @@ struct vehicle {
     // 1000 px is larger than the screen width because vehicules rotate
     // screen goes from pixel 180 to pixel 1000-180-1
     int x; 
+    // horizontal length
+    int length;
 };
 
 typedef enum { SLOW = 0, FAST } vehicle_speed;
@@ -153,7 +158,7 @@ long int get_random(long int min, long int max) {
 
 // generate background and vehicles
 void generate_background() {
-    int i, j, veh_length;
+    int i, j;
     memset(background, 0, sizeof(background));
     if (NB_BANDS < LAUNCH_PAD_SIZE) {
         exit(1);
@@ -164,6 +169,7 @@ void generate_background() {
     }
 
     for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS-1 ; ++i) {
+        int veh_length[2];
         // fixme: change probability (for the time 1/2)
         background[i].road = get_random(0, 1);
         background[i].direction = get_random(0, 1) ? LR : RL;
@@ -171,21 +177,21 @@ void generate_background() {
         background[i].speed = get_random(0, 1) ? SLOW : FAST;
         background[i].nb_vehicles = get_random(0, 1) ? 1 : 2;
         for (j = 0 ; j <= 1 ; j++) {
-            background[i].veh[j].type = get_random(0, 1) ? CAR : TRUCK;
-            background[i].veh[j].x = get_random(0, 599);
-        }
-        // vehicles must not overlap
-        for (j = 0 ; j <= 1 ; j++) {
-            if (background[i].veh[1].type == CAR) {
-                veh_length = CAR_LENGTH;
+            if (get_random(0, 1)) {
+                background[i].veh[j].type = CAR;
+                background[i].veh[j].length = CAR_LENGTH;
             }
-            else { // truck
-                veh_length = TRUCK_LENGTH;
-            }
-            if (background[i].veh[j].x + veh_length > background[i].veh[(j+1)%2].x) {
-                background[i].veh[(j+1)%2].x = (background[i].veh[j].x + veh_length) % 600;
+            else {
+                background[i].veh[j].type = TRUCK;
+                background[i].veh[j].length = TRUCK_LENGTH;
             }
         }
+        // first vehicle coordinate
+        background[i].veh[0].x = get_random(0, 1000 - 1);
+        // second vehicle must not overlap
+        int sum_veh_lengths = background[i].veh[0].length + background[i].veh[0].length;
+        int distance_between_vehicles = get_random(0, 1000 - 1 - sum_veh_lengths - 2*MIN_DISTANCE_BETWEEN_VEHICLES);
+        background[i].veh[1].x = background[i].veh[0].x + background[i].veh[0].length + distance_between_vehicles + MIN_DISTANCE_BETWEEN_VEHICLES;
     }
 
     for (i = NB_BANDS-1 ; i <= NB_BANDS ; ++i) {
