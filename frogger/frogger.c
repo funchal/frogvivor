@@ -9,6 +9,10 @@
 // number of pixel per band
 #define NB_PIXELS_PER_LINE 48
 
+// offset from the left side of the screen to the first vertical line.
+// note: the first vertical line is partially displayed out of the screen.
+#define OFFSET_FIRST_VERTICAL_LINE (-40)
+
 // number of grass/road bands before finish line
 #define NB_BANDS 15
 
@@ -171,7 +175,7 @@ void generate_background() {
             if (background[i].veh[1].type == CAR) {
                 veh_length = CAR_LENGTH;
             }
-            else { // trunk
+            else { // truck
                 veh_length = TRUCK_LENGTH;
             }
             if (background[i].veh[j].x + veh_length > background[i].veh[(j+1)%2].x) {
@@ -241,7 +245,7 @@ void next_player_state(int i) {
     row = player[i].position;
     if (background[row].road) {
         for (i_veh = 0 ; i_veh < background[row].nb_vehicles ; ++i_veh) {
-            veh_length = background[row].veh[i_veh].type == CAR ? 80 : 130;
+            veh_length = background[row].veh[i_veh].type == CAR ? CAR_LENGTH : TRUCK_LENGTH;
             if (overlap(player[i].x, FROG_LENGTH, background[row].veh[i_veh].x, veh_length)) {
                 collision = true;
             }
@@ -314,8 +318,7 @@ void tick() {
                         veh_image = truckRL[0];
                     }
                 }
-                // y+3 because cars are thinner than roads
-                draw_image(background[line_number].veh[i_veh].x, y+3, veh_image);
+                draw_image(background[line_number].veh[i_veh].x, y, veh_image);
                 // update x coordinate
                 // 800 == screen length + 200
                 // + 150 ... - 150    for gradual display at the beginning of the line
@@ -403,7 +406,8 @@ void play_one_race() {
         player[i].state = 0;
         player[i].key_pressed = false;
         player[i].alive = true;
-        player[i].x = 48*(3+2*i);
+        player[i].x = 48*(4+2*i) + OFFSET_FIRST_VERTICAL_LINE;
+        printf("frog %i: %i %i\n", i, player[i].x, player[i].x+48);
         player[i].image = frog[i];
         player[i].on_finish_line = false;
     }
