@@ -52,6 +52,8 @@ struct player {
     bool on_finish_line;
     SDL_Surface* image;
     int score;
+    bool AI; // true iff artificial intelligence is playing
+    bool AI_go_up; // true iff AI wants to jump upwards
 } player[4];
 
 typedef enum { CAR = 0, TRUCK } vehicle_type;
@@ -228,6 +230,15 @@ bool overlap(int ax, int al, int bx, int bl) {
     }
 }
 
+void update_AI_choice(int i) {
+    if (get_random(0, 50) == 0) {
+        player[i].AI_go_up = true;
+    }
+    else {
+        player[i].AI_go_up = false;
+    }
+}
+
 void next_player_state(int i) {
     int i_veh;
     bool collision;
@@ -239,8 +250,13 @@ void next_player_state(int i) {
     case 0:
         player[i].state = 0;
         player[i].image = frog[i];
+        if (player[i].AI) {
+            update_AI_choice(i);
+        }
         if( // normal jump
            (player[i].key_pressed && (player[i].position < max_row_allowed)) ||
+           // normal jump for AI
+           (player[i].AI_go_up && (player[i].position < max_row_allowed)) ||
            // emergency jump
            (player[i].position < min_row_allowed) )
             {
@@ -442,6 +458,8 @@ void tick() {
                 player[i].x = 48*(4+2*i) + OFFSET_FIRST_VERTICAL_LINE;
                 player[i].image = frog[i];
                 player[i].on_finish_line = false;
+                player[i].AI = true;
+                player[i].AI_go_up = false;
             }
 
             generate_background();
@@ -450,7 +468,9 @@ void tick() {
             game_state = PICK;
             }
             break;
-        case PICK:
+        case PICK: {
+            int i;
+
             // background
             draw_background();
 
@@ -460,6 +480,17 @@ void tick() {
                 game_state = GAME;
                 pick_count = 0;
             }
+
+            for (i = 0 ; i < 4 ; ++i) {
+                if (player[i].key_pressed && player[i].AI) {
+                    // note: from now on, the frog is colorized
+                    player[i].AI = false;
+                    next_player_state(i);
+                }
+                draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+            }
+        }
+
             break;
         case GAME: {
             // scrolling
