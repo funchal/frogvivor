@@ -282,6 +282,7 @@ void tick() {
     int frog_alive; // one of living frog
     int nb_finish;
     int frog_finish; // one of the frog on the finish line
+    char buffer[60];
 
     for(i = 0; i != 11; ++i) {
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
@@ -289,7 +290,7 @@ void tick() {
         line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
         if (line_number == NB_BANDS-1) { // finish line
-            background_image = terrain[6];
+            background_image = terrain[0];
         }
         else if (background[line_number].road == true) { // road
             background_image = terrain[1];
@@ -298,6 +299,10 @@ void tick() {
             background_image = terrain[0];
         }
         draw_image(0, y, background_image);
+        if (line_number == NB_BANDS-1) { // finish line
+            sprintf(buffer, "FINISH");
+            draw_text(268, 16, buffer);
+        }
                 
         // draw vehicles
         if (background[line_number].road == true) { // road
@@ -386,9 +391,10 @@ void tick() {
     }
 
     // text
-    char buffer[60];
     sprintf(buffer, "P1:%2d     P2:%2d     P3:%2d     P4:%2d", player[0].score, player[1].score, player[2].score, player[3].score);
-    draw_text(32, 16, buffer);
+    draw_text(40, 480-16, buffer);
+
+
 }
 
 void play_one_race() {
