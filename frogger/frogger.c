@@ -386,8 +386,8 @@ void tick() {
         
         if (background[line_number].road == true) { // road
             for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
+                int color = background[line_number].veh[i_veh].color;
                 if (background[line_number].veh[i_veh].type == CAR) {
-                    int color = background[line_number].veh[i_veh].color;
                     if (background[line_number].direction == LR) {
                         veh_image = car[color];
                     }
@@ -397,10 +397,10 @@ void tick() {
                 }
                 else {
                     if (background[line_number].direction == LR) {
-                        veh_image = truck[0];
+                        veh_image = truck[color];
                     }
                     else {
-                        veh_image = truckRL[0];
+                        veh_image = truckRL[color];
                     }
                 }
 
