@@ -7,6 +7,17 @@ use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
 entity lcd is
+    generic(
+        constant delay : integer :=   1; -- propagation delay
+        constant TH    : integer := 800; -- horizontal cycles
+        constant THE   : integer :=  48; -- enable setup time
+        constant THP   : integer :=  96; -- sync pulse width
+        constant TEP   : integer := 640; -- enable pulse width
+        constant TV    : integer := 525; -- vertical cycles
+        constant TVS   : integer :=  42; -- data setup time
+        constant TVP   : integer :=   8; -- sync pulse width
+        constant TVD   : integer := 480  -- display data width
+    );
     port(
         reset  : in  std_logic;
         clock  : in  std_logic;
@@ -27,21 +38,11 @@ end entity;
 architecture behavioral of lcd is
     signal hcounter : std_logic_vector(9 downto 0);
     signal vcounter : std_logic_vector(8 downto 0);
-    signal enablex  : std_logic;
-    constant TH  : integer := 800; -- horizontal cycles
-    constant THE : integer :=  48; -- enable setup time
-    constant THP : integer :=  96; -- sync pulse width
-    constant TEP : integer := 640; -- enable pulse width
-    constant TV  : integer := 525; -- vertical cycles
-    constant TVS : integer :=  34; -- data setup time
-    constant TVP : integer :=   8; -- sync pulse width
-    constant TVD : integer := 480; -- display data width
-    constant propagation : integer := 2;
 begin
     process(clock, reset)
     begin
         if (reset = '1') then
-            hcounter <= conv_std_logic_vector(TEP+propagation, 10);
+            hcounter <= conv_std_logic_vector(TEP+delay+1, 10);
             vcounter <= conv_std_logic_vector(TVD, 9);
         elsif rising_edge(clock) then
             if (hcounter = TH-1) then
@@ -57,16 +58,23 @@ begin
 	    end if;
     end process;
 
-    enablex <= '1' when (propagation <= hcounter) and (hcounter < TEP + propagation)
-                   else '0';
-    enable <= enablex;
-    hsync  <= '0' when (TH-THE-THP - propagation <= hcounter) and (hcounter < TH-THE - propagation)
-                  else '1';
-    vsync  <= '0' when (TV-TVS-TVP <= vcounter) and (vcounter < TV-TVS)
+    vsync  <= '0' when (TV-TVS <= vcounter) and
+                       (vcounter < TV-TVS+TVP)
                   else '1';
 
-    x <= hcounter when (hcounter < TEP)
+    hsync  <= '0' when (TH-THE-THP-delay-1 <= hcounter) and
+                       (hcounter < TH-THE-delay-1)
+                  else '1';
+
+    enable <= '1' when (delay+1 <= hcounter) and
+                       (hcounter < TEP+delay+1) and
+                       (vcounter < TVD)
+                  else '0';
+
+    x <= hcounter when (hcounter < TEP) and
+                       (vcounter < TVD)
                   else (others => '0');
+
     y <= vcounter when (vcounter < TVD)
                   else (others => '0');
 
@@ -77,7 +85,10 @@ begin
             ogreen <= (others => '0');
             oblue <= (others => '0');
         elsif rising_edge(clock) then
-            if (propagation-1 <= hcounter) and (hcounter < TEP + propagation-1) then
+            if (delay <= hcounter) and
+               (hcounter < TEP+delay) and
+               (vcounter < TVD)
+            then
                 ored <= ired;
                 ogreen <= igreen;
                 oblue <= iblue;

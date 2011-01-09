@@ -5,15 +5,17 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_textio.all;
-
-use STD.textio.all;
+use work.txt_util.all;
 
 entity lcd_test is
+    generic(
+        constant clock_period : time := 10 ns
+    );
 end entity;
  
 architecture behavioral of lcd_test is
     component lcd is
-        port(
+       port(
             reset  : in  std_logic;
             clock  : in  std_logic;
             ired   : in  std_logic_vector(5 downto 0);
@@ -44,8 +46,6 @@ architecture behavioral of lcd_test is
     signal x       : std_logic_vector(9 downto 0);
     signal y       : std_logic_vector(8 downto 0);
 
-    constant clock_period : time := 10 ns;
-   
 begin 
  
     dut: lcd
@@ -73,13 +73,13 @@ begin
         wait for clock_period/2;
     end process;
 
-    ired <= x(5 downto 0);
-    igreen <= (others => x(5) and y(3));
+    ired <= (others => x(6));
+    igreen <= (others => x(7));
     iblue <= y(8 downto 3);
 
     process
         type char_file_t is file of character;
-        file my_output : char_file_t is out "output.bmp";
+        file f : char_file_t;
         constant header : std_logic_vector(54*8-1 downto 0) :=
             x"424D"     & -- "BM" magic
             x"36100E00" & -- file size 640*480*3 + 54 = 921654 in little-endian
@@ -96,34 +96,39 @@ begin
             x"130b0000" & -- vertical resolution
             x"00000000" & -- color pallete
             x"00000000";  -- ignored
-
-        constant vskip : integer := 31;
     begin
+        -- reset
         reset <= '1';
         wait for clock_period*10;
         reset <= '0';
 
-        for i in 0 to vskip loop
-            wait until rising_edge(enable);
-        end loop;
+        for c in 0 to 1 loop
+            
+            file_open(f, "output-" & str(c) & ".bmp", WRITE_MODE);
 
-        -- write bmp header
-        for i in 53 downto 0 loop
-            write(my_output, character'val(to_integer(unsigned(header(8*(i+1)-1 downto 8*i)))));
-        end loop;
-
-        -- write data
-        for i in 0 to 479 loop
-            wait until rising_edge(enable);
-            wait for clock_period/2;
-            for j in 0 to 639 loop
-                write(my_output, character'val(to_integer(unsigned(oblue & "00"))));
-                write(my_output, character'val(to_integer(unsigned(ogreen & "00"))));
-                write(my_output, character'val(to_integer(unsigned(ored & "00"))));
-                wait for clock_period;
+            -- write bmp header
+            for i in 53 downto 0 loop
+                write(f, character'val(to_integer(unsigned(header(8*(i+1)-1 downto 8*i)))));
             end loop;
-        end loop;
 
-        report "DONE!";
+            -- write data
+            wait until rising_edge(vsync);
+            for i in 0 to 479 loop
+                wait until rising_edge(enable);
+                for j in 0 to 639 loop
+                    wait until falling_edge(clock);
+                    write(f, character'val(to_integer(unsigned(oblue  & "00"))));
+                    write(f, character'val(to_integer(unsigned(ogreen & "00"))));
+                    write(f, character'val(to_integer(unsigned(ored   & "00"))));
+                end loop;
+            end loop;
+
+            file_close(f);
+
+            report "frame " & str(c) & " end";
+
+        end loop;
+        report "end of testbench";
+        wait;
     end process;
 end;
