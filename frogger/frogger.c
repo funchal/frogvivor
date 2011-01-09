@@ -230,8 +230,36 @@ bool overlap(int ax, int al, int bx, int bl) {
     }
 }
 
+// choice should depend on the prensence of vehicles
+// on the current road and next road(s),
+// and possibly on position wrt the other frogs
 void update_AI_choice(int i) {
-    if (get_random(0, 50) == 0) {
+    int probability_to_go_up; // draw within 10000 possibilities
+
+    if (background[player[i].position + 1].road == false) {
+        // next band is grass
+        if (background[player[i].position].road == false) {
+            // current band is grass
+            probability_to_go_up = 200;
+        }
+        else {
+            // current band is a road
+            probability_to_go_up = 250;
+        }
+    }
+    else { 
+        // next band is a road
+        if (background[player[i].position].road == false) {
+            // current band is grass
+            probability_to_go_up = 100;
+        }
+        else {
+            // current band is a road
+            probability_to_go_up = 120;
+        }
+    }
+
+    if (get_random(0, 10000) <= probability_to_go_up) {
         player[i].AI_go_up = true;
     }
     else {
@@ -254,9 +282,9 @@ void next_player_state(int i) {
             update_AI_choice(i);
         }
         if( // normal jump
-           (player[i].key_pressed && (player[i].position < max_row_allowed)) ||
+           (!player[i].AI && player[i].key_pressed && (player[i].position < max_row_allowed)) ||
            // normal jump for AI
-           (player[i].AI_go_up && (player[i].position < max_row_allowed)) ||
+           (player[i].AI && player[i].AI_go_up && (player[i].position < max_row_allowed)) ||
            // emergency jump
            (player[i].position < min_row_allowed) )
             {
