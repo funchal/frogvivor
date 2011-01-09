@@ -386,7 +386,9 @@ void tick() {
     }
 
     // text
-    draw_text(32, 16, "PLAYER 1 PLAYER 2 PLAYER 3 PLAYER 4");
+    char buffer[60];
+    sprintf(buffer, "P1:%2d     P2:%2d     P3:%2d     P4:%2d", player[0].score, player[1].score, player[2].score, player[3].score);
+    draw_text(32, 16, buffer);
 }
 
 void play_one_race() {
@@ -555,14 +557,6 @@ int main(int argc, char* argv[]) {
     quit = 0;
     while (!quit) {
         // todo: print "ready" ... "go"
-
-        // print scores
-        // todo: print scores on the window
-        printf("scores: ");
-        for (i=0 ; i < 4 ; i++) {
-            printf("%d ", player[i].score);
-        }
-        printf("\n");
 
         // play
         play_one_race();
