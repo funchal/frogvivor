@@ -13,7 +13,7 @@
 #define OFFSET_FIRST_VERTICAL_LINE (-40)
 
 // number of grass/road bands before finish line
-#define NB_BANDS 15
+#define NB_BANDS 21
 
 // minimum number of grass bands before first road 
 #define LAUNCH_PAD_SIZE 3
@@ -429,8 +429,8 @@ void tick() {
     }
 
     // text
-    sprintf(buffer, "       %2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
-    draw_text(40, 480-24, buffer);
+    sprintf(buffer, "%2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
+    draw_text(152, 480-24, buffer);
 }
 
 void play_one_race() {
@@ -510,7 +510,7 @@ int main(int argc, char* argv[]) {
     int i;
 
     // initialise random
-    srandom(8671);
+    srandom(42);
 
     // initialize SDL
     if(SDL_Init(0) != 0) {
