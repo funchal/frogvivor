@@ -308,7 +308,7 @@ void tick() {
             background_image = terrain[0];
         }
         draw_image(0, y, background_image);
-        if (line_number == NB_BANDS-1) { // finish line
+        if (line_number == NB_BANDS-1 && y == 0) { // finish line on the top (not lower nor higher!)
             sprintf(buffer, "FINISH");
             draw_text(268, 16, buffer);
         }                
@@ -418,8 +418,6 @@ void tick() {
     // text
     sprintf(buffer, "       %2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
     draw_text(40, 480-24, buffer);
-
-
 }
 
 void play_one_race() {
@@ -499,7 +497,7 @@ int main(int argc, char* argv[]) {
     int i;
 
     // initialise random
-    srandom(86712);
+    srandom(8671);
 
     // initialize SDL
     if(SDL_Init(0) != 0) {
