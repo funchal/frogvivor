@@ -28,6 +28,7 @@
 SDL_Surface* screen;
 SDL_Surface* frog[4];
 SDL_Surface* jump[4]; 
+SDL_Surface* splat;
 SDL_Surface* car[5];
 SDL_Surface* truck[2];
 SDL_Surface* carRL[5];
@@ -98,7 +99,7 @@ SDL_Surface* load_image(const char* filename) {
     }
     SDL_Surface* image = SDL_DisplayFormat(temp);
     SDL_FreeSurface(temp);
-    SDL_SetColorKey(image, SDL_SRCCOLORKEY, SDL_MapRGB(image->format, 255, 0, 255));
+    SDL_SetColorKey(image, SDL_SRCCOLORKEY, SDL_MapRGB(image->format, 0, 0, 0));
     return image;
 }
 
@@ -276,17 +277,16 @@ void tick() {
     SDL_Surface* background_image;
     SDL_Surface* veh_image;
     int i, i_veh;
-    int line_number; 
-    int y; // distance from the top of the screen
     int nb_alive;
     int frog_alive; // one of living frog
     int nb_finish;
     int frog_finish; // one of the frog on the finish line
 
     for(i = 0; i != 11; ++i) {
+        // distance from the top of the screen
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
-        y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
-        line_number = (offset/NB_PIXELS_PER_LINE) + i;
+        int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
+        int line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
         if (line_number == NB_BANDS-1) { // finish line
             background_image = terrain[6];
@@ -298,48 +298,6 @@ void tick() {
             background_image = terrain[0];
         }
         draw_image(0, y, background_image);
-                
-        // draw vehicles
-        if (background[line_number].road == true) { // road
-            for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
-                if (background[line_number].veh[i_veh].type == CAR) {
-                    if (background[line_number].direction == LR) {
-                        veh_image = car[0];
-                    }
-                    else {
-                        veh_image = carRL[0];
-                    }
-                }
-                else {
-                    if (background[line_number].direction == LR) {
-                        veh_image = truck[0];
-                    }
-                    else {
-                        veh_image = truckRL[0];
-                    }
-                }
-                draw_image(background[line_number].veh[i_veh].x, y, veh_image);
-                // update x coordinate
-                // 800 == screen length + 200
-                // + 150 ... - 150    for gradual display at the beginning of the line
-                int speed;
-                if (background[line_number].speed == SLOW) {
-                    speed = 2;
-                }
-                else {
-                    speed = 3;
-                }
-                if (background[line_number].direction == LR) {
-                    background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 200) % 1000) - 200;
-                }
-                else {
-                    background[line_number].veh[i_veh].x -= speed;
-                    if (background[line_number].veh[i_veh].x < -200) {
-                        background[line_number].veh[i_veh].x += 1000;
-                    }
-                }
-            }
-        }
     }
 
     // frogs
@@ -382,6 +340,58 @@ void tick() {
     for(i = 0; i != 4; ++i) {
         if (player[i].alive) {
             draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+        }
+        else {
+            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat);
+        }
+    }
+
+    for(i = 0; i != 11; ++i) {
+        // distance from the top of the screen
+        // y = (total height) - (piece of first line) - (full lines between 1 and i)
+        int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
+        int line_number = (offset/NB_PIXELS_PER_LINE) + i;
+
+        // draw vehicles
+        if (background[line_number].road == true) { // road
+            for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
+                if (background[line_number].veh[i_veh].type == CAR) {
+                    if (background[line_number].direction == LR) {
+                        veh_image = car[3];
+                    }
+                    else {
+                        veh_image = carRL[3];
+                    }
+                }
+                else {
+                    if (background[line_number].direction == LR) {
+                        veh_image = truck[0];
+                    }
+                    else {
+                        veh_image = truckRL[0];
+                    }
+                }
+                draw_image(background[line_number].veh[i_veh].x, y, veh_image);
+                // update x coordinate
+                // 800 == screen length + 200
+                // + 150 ... - 150    for gradual display at the beginning of the line
+                int speed;
+                if (background[line_number].speed == SLOW) {
+                    speed = 2;
+                }
+                else {
+                    speed = 3;
+                }
+                if (background[line_number].direction == LR) {
+                    background[line_number].veh[i_veh].x = ((background[line_number].veh[i_veh].x + speed + 200) % 1000) - 200;
+                }
+                else {
+                    background[line_number].veh[i_veh].x -= speed;
+                    if (background[line_number].veh[i_veh].x < -200) {
+                        background[line_number].veh[i_veh].x += 1000;
+                    }
+                }
+            }
         }
     }
 
@@ -517,6 +527,8 @@ int main(int argc, char* argv[]) {
     jump[1] = load_image("images/53.bmp");
     jump[2] = load_image("images/55.bmp");
     jump[3] = load_image("images/57.bmp");
+
+    splat = load_image("images/splat.bmp");
 
     car[0] = load_image("images/100.bmp");
     car[1] = load_image("images/101.bmp");
