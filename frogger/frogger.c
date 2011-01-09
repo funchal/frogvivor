@@ -291,8 +291,6 @@ void next_player_state(int i) {
     }
 }
 
-int pick_count;
-
 void draw_background() {
     // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
     SDL_Surface* background_image;
@@ -321,6 +319,116 @@ void draw_background() {
         }                
     }
 }
+
+void draw_frogs() {
+    int nb_alive = 0;
+    int frog_alive = 100; // one of living frog
+    int nb_finish = 0;
+    int frog_finish = 100; // one of living frog
+    int i;
+
+    for(i = 0; i != 4; ++i) {
+        if (player[i].alive) {
+            next_player_state(i);
+            nb_alive++;
+            frog_alive = i;
+            if (player[i].on_finish_line) {
+                nb_finish++;
+                frog_finish = i;
+            }
+        }
+    }
+
+    // test end of race and give points
+    if (nb_alive == 0) { // draw: no point
+        printf("draw\n");
+        game_state = WINNER;
+    }
+    else if (nb_alive == 1) { // one winner
+        printf("frog %d wins!\n", frog_alive);
+        game_state = WINNER;
+        player[frog_alive].score++;
+    }
+    else if (nb_finish == 1) { // one winner
+        printf("frog %d wins!\n", frog_finish);
+        game_state = WINNER;
+        player[frog_finish].score++;
+    }
+    else if (nb_finish > 1) { // draw
+        printf("draw\n");
+        game_state = WINNER;
+    }
+
+    for(i = 0; i != 4; ++i) {
+        if (player[i].alive) {
+            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+        }
+        else {
+            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat[i]);
+        }
+    }
+}
+
+void draw_vehicles() {
+    int i, i_veh;
+    SDL_Surface* veh_image;
+    for(i = 0; i != 11; ++i) {
+        // distance from the top of the screen
+        // y = (total height) - (piece of first line) - (full lines between 1 and i)
+        int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
+        int line_number = (offset/NB_PIXELS_PER_LINE) + i;
+                
+        if (background[line_number].road == true) { // road
+            for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
+                int color = background[line_number].veh[i_veh].color;
+                if (background[line_number].veh[i_veh].type == CAR) {
+                    if (background[line_number].direction == LR) {
+                        veh_image = car[color];
+                    }
+                    else {
+                        veh_image = carRL[color];
+                    }
+                }
+                else {
+                    if (background[line_number].direction == LR) {
+                        veh_image = truck[color];
+                    }
+                    else {
+                        veh_image = truckRL[color];
+                    }
+                }
+
+                // calculate speed
+                int speed;
+                if (background[line_number].speed == SLOW) {
+                    speed = 2;
+                }
+                else {
+                    speed = 3;
+                }
+
+                // update x coordinate
+                if (background[line_number].direction == LR) {
+                    background[line_number].veh[i_veh].x += speed;
+                }
+                else {
+                    background[line_number].veh[i_veh].x -= speed;
+                }
+
+                // wrap cars
+                background[line_number].veh[i_veh].x %= 1000;
+                if(background[line_number].veh[i_veh].x < 0) {
+                    background[line_number].veh[i_veh].x += 1000;
+                }
+
+                // draw cars
+                draw_image(background[line_number].veh[i_veh].x-180, y, veh_image);
+            }
+        }
+    }
+}
+
+int pick_count;
 
 void tick() {
     switch(game_state) {
@@ -354,12 +462,6 @@ void tick() {
             }
             break;
         case GAME: {
-    int nb_alive;
-    int frog_alive; // one of living frog
-    int nb_finish;
-    int frog_finish; // one of the frog on the finish line
-
-
             // scrolling
             if (// a frog is near the top of the screen
                 ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
@@ -373,109 +475,11 @@ void tick() {
             // background
             draw_background();
 
-            // frogs
-            nb_alive = 0;
-            frog_alive = 100; // one of living frog
-            nb_finish = 0;
-            frog_finish = 100; // one of living frog
-            int i, i_veh;
-            SDL_Surface* veh_image;
-            for(i = 0; i != 4; ++i) {
-                if (player[i].alive) {
-                    next_player_state(i);
-                    nb_alive++;
-                    frog_alive = i;
-                    if (player[i].on_finish_line) {
-                        nb_finish++;
-                        frog_finish = i;
-                    }
-                }
-            }
+            // compute next state of frogs and display them
+            draw_frogs();
 
-            // test end of race and give points
-            if (nb_alive == 0) { // draw: no point
-                printf("draw\n");
-                game_state = WINNER;
-            }
-            else if (nb_alive == 1) { // one winner
-                printf("frog %d wins!\n", frog_alive);
-                game_state = WINNER;
-                player[frog_alive].score++;
-            }
-            else if (nb_finish == 1) { // one winner
-                printf("frog %d wins!\n", frog_finish);
-                game_state = WINNER;
-                player[frog_finish].score++;
-            }
-            else if (nb_finish > 1) { // draw
-                printf("draw\n");
-                game_state = WINNER;
-            }
-
-            for(i = 0; i != 4; ++i) {
-                if (player[i].alive) {
-                    draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
-                }
-                else {
-                    draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat[i]);
-                }
-            }
-
-            // draw vehicles
-            for(i = 0; i != 11; ++i) {
-                // distance from the top of the screen
-                // y = (total height) - (piece of first line) - (full lines between 1 and i)
-                int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
-                int line_number = (offset/NB_PIXELS_PER_LINE) + i;
-                
-                if (background[line_number].road == true) { // road
-                    for (i_veh = 0 ; i_veh < background[line_number].nb_vehicles ; ++i_veh) {
-                        int color = background[line_number].veh[i_veh].color;
-                        if (background[line_number].veh[i_veh].type == CAR) {
-                            if (background[line_number].direction == LR) {
-                                veh_image = car[color];
-                            }
-                            else {
-                                veh_image = carRL[color];
-                            }
-                        }
-                        else {
-                            if (background[line_number].direction == LR) {
-                                veh_image = truck[color];
-                            }
-                            else {
-                                veh_image = truckRL[color];
-                            }
-                        }
-
-                        // calculate speed
-                        int speed;
-                        if (background[line_number].speed == SLOW) {
-                            speed = 2;
-                        }
-                        else {
-                            speed = 3;
-                        }
-
-                        // update x coordinate
-                        if (background[line_number].direction == LR) {
-                            background[line_number].veh[i_veh].x += speed;
-                        }
-                        else {
-                            background[line_number].veh[i_veh].x -= speed;
-                        }
-
-                        // wrap cars
-                        background[line_number].veh[i_veh].x %= 1000;
-                        if(background[line_number].veh[i_veh].x < 0) {
-                            background[line_number].veh[i_veh].x += 1000;
-                        }
-
-                        // draw cars
-                        draw_image(background[line_number].veh[i_veh].x-180, y, veh_image);
-                    }
-                }
-            }
+            // compute next state of vehicles and display them
+            draw_vehicles();
 
             // text
             char buffer[60];
