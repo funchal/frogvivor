@@ -21,8 +21,8 @@
 
 // LENGTH OF A FROG, A CAR, A TRUCK
 #define FROG_LENGTH 48
-#define CAR_LENGTH 80
-#define TRUCK_LENGTH 130
+#define CAR_LENGTH 96
+#define TRUCK_LENGTH 144
 
 // static resources
 SDL_Surface* screen;
@@ -409,7 +409,6 @@ void play_one_race() {
         player[i].key_pressed = false;
         player[i].alive = true;
         player[i].x = 48*(4+2*i) + OFFSET_FIRST_VERTICAL_LINE;
-        printf("frog %i: %i %i\n", i, player[i].x, player[i].x+48);
         player[i].image = frog[i];
         player[i].on_finish_line = false;
     }
