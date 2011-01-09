@@ -55,7 +55,10 @@ typedef enum { CAR = 0, TRUCK } vehicle_type;
 
 struct vehicle {
     vehicle_type type;
-    int x; // x coordinate
+    // x coordinate over 1000 pixels
+    // 1000 px is larger than the screen width because vehicules rotate
+    // screen goes from pixel 180 to pixel 1000-180-1
+    int x; 
 };
 
 typedef enum { SLOW = 0, FAST } vehicle_speed;
@@ -247,7 +250,8 @@ void next_player_state(int i) {
     if (background[row].road) {
         for (i_veh = 0 ; i_veh < background[row].nb_vehicles ; ++i_veh) {
             veh_length = background[row].veh[i_veh].type == CAR ? CAR_LENGTH : TRUCK_LENGTH;
-            if (overlap(player[i].x, FROG_LENGTH, background[row].veh[i_veh].x, veh_length)) {
+            // -180 because x coord of vehicles is staggered with 180 pixels
+            if (overlap(player[i].x, FROG_LENGTH, background[row].veh[i_veh].x-180, veh_length)) {
                 collision = true;
             }
             
@@ -401,14 +405,14 @@ void tick() {
                 }
 
                 // draw cars
-                draw_image(background[line_number].veh[i_veh].x-200, y, veh_image);
+                draw_image(background[line_number].veh[i_veh].x-180, y, veh_image);
             }
         }
     }
 
     // text
-    sprintf(buffer, "P1:%2d     P2:%2d     P3:%2d     P4:%2d", player[0].score, player[1].score, player[2].score, player[3].score);
-    draw_text(40, 480-16, buffer);
+    sprintf(buffer, "       %2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
+    draw_text(40, 480-24, buffer);
 
 
 }
