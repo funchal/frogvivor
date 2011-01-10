@@ -13,8 +13,10 @@
 #define OFFSET_FIRST_VERTICAL_LINE (-40)
 
 // number of grass/road bands before finish line
-#define NB_BANDS 21
-
+#define FINISH_BAND_NUMBER 20
+// total number of grass/road bands 
+// (before finish line + after finish line + 1 for display facilities)
+#define NB_BANDS (FINISH_BAND_NUMBER + 3 + 1)
 // minimum number of grass bands before first road 
 #define LAUNCH_PAD_SIZE 3
 
@@ -78,8 +80,7 @@ struct band {
     vehicle_speed speed; // speed of the vehicules
     int nb_vehicles; // 1 or 2
     struct vehicle veh[2]; // depending on nb_vehicules, 1 or 2 are used
-} // NB_BANDS-1 normal road/grass bands + 1 finish band + 1 band for easy display
-    background[NB_BANDS+1];
+} background[NB_BANDS];
 
 
 enum { INIT, PICK, GAME, WINNER } game_state;
@@ -188,7 +189,7 @@ void generate_background() {
         background[i].road = false;
     }
 
-    for (i = LAUNCH_PAD_SIZE ; i < NB_BANDS-1 ; ++i) {
+    for (i = LAUNCH_PAD_SIZE ; i < FINISH_BAND_NUMBER ; ++i) {
         // fixme: change probability (for the time 1/2)
         background[i].road = get_random(0, 1);
         background[i].direction = get_random(0, 1) ? LR : RL;
@@ -216,7 +217,7 @@ void generate_background() {
         background[i].veh[1].x = background[i].veh[0].x + background[i].veh[0].length + distance_between_vehicles + MIN_DISTANCE_BETWEEN_VEHICLES;
     }
 
-    for (i = NB_BANDS-1 ; i <= NB_BANDS ; ++i) {
+    for (i = FINISH_BAND_NUMBER ; i < NB_BANDS ; ++i) {
         background[i].road = false;
     }
 }
@@ -330,7 +331,7 @@ void next_player_state(int i) {
     if (collision) {
         player[i].alive = false;
     }
-    if (player[i].position == NB_BANDS-1) {
+    if (player[i].position == FINISH_BAND_NUMBER) {
         player[i].on_finish_line = true;
     }
 }
@@ -347,7 +348,7 @@ void draw_background() {
         int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
-        if (line_number == NB_BANDS-1) { // finish line
+        if (line_number == FINISH_BAND_NUMBER) { // finish line
             background_image = grass;
         }
         else if (background[line_number].road == true) { // road
@@ -357,9 +358,9 @@ void draw_background() {
             background_image = grass;
         }
         draw_image(0, y, background_image);
-        if (line_number == NB_BANDS-1 && y == 0) { // finish line on the top (not lower nor higher!)
+        if (line_number == FINISH_BAND_NUMBER && y >= 0) { // finish line is on the top (not lower nor higher!)
             sprintf(buffer, "FINISH");
-            draw_text(268, 16, buffer);
+            draw_text(268, y+16, buffer);
         }                
     }
 }
@@ -524,8 +525,8 @@ void tick() {
             // scrolling
             if (// a frog is near the top of the screen
                 ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
-                // the finish line is not visible yet
-                (offset < (NB_BANDS+1)*NB_PIXELS_PER_LINE - 480 - NB_PIXELS_PER_LINE)) {
+                // the last line is not visible yet
+                (offset < (NB_BANDS)*NB_PIXELS_PER_LINE - 480)) {
                 offset++;
             }
             max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
