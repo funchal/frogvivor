@@ -73,9 +73,17 @@ begin
         wait for clock_period/2;
     end process;
 
-    ired <= (others => x(6));
-    igreen <= (others => x(7));
-    iblue <= y(8 downto 3);
+    hsl2rgb_0 : entity work.hsl2rgb port map(
+        hue    => 3,
+        lum    => y(7 downto 0),
+        ored   => ired,
+        ogreen => igreen,
+        oblue  => iblue
+    );
+
+    --ired <= (others => x(6));
+    --igreen <= (others => x(7));
+    --iblue <= y(8 downto 3);
 
     process
         type char_file_t is file of character;

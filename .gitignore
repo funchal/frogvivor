@@ -1,3 +1,6 @@
+*.xreport
+*.html
+*.log
 *.swp
 *.swn
 *.swm
