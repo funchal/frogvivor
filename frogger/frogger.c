@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-
+#include <math.h>
 // number of pixel per band
 #define NB_PIXELS_PER_LINE 48
 
@@ -97,10 +97,7 @@ int min_row_allowed;
 // screen offset in pixels
 int offset;
 
-// true iff one frog has just won
-//bool end_of_race;
-
-SDL_Surface* load_image(const char* filename, Uint8 R, Uint8 G, Uint8 B) {
+SDL_Surface* load_image(const char* filename, Uint8 hue) {
     SDL_Surface* temp;
     temp = SDL_LoadBMP(filename);
     if(temp == NULL) {
@@ -110,20 +107,29 @@ SDL_Surface* load_image(const char* filename, Uint8 R, Uint8 G, Uint8 B) {
     SDL_Surface* image = SDL_DisplayFormat(temp);
     SDL_FreeSurface(temp);
     SDL_SetColorKey(image, SDL_SRCCOLORKEY, SDL_MapRGB(image->format, 0, 0, 0));
+    if(hue != 0) {
     SDL_LockSurface(image);
     int i;
+    hue=hue/42;
     for(i = 0; i != image->w * image->h; ++i) {
         Uint8* data = (Uint8*) image->pixels;
-        Uint8* r = &data[3*i];
+        Uint8* r = &data[3*i+2];
         Uint8* g = &data[3*i+1];
-        Uint8* b = &data[3*i+2];
-        if(*r < 200) {
-        *r *= 1-R/255.0;
-        *g *= 1-G/255.0;
-        *b *= 1-B/255.0;
+        Uint8* b = &data[3*i];
+        Uint8 p = (*r * *r)/256;
+        Uint8 q = sqrt(255.0 * *r);
+        switch(hue) {
+            case 0: *r = q; *g = p; *b = p; break;
+            case 1: *r = q; *g = q; *b = p; break;
+            case 2: *r = p; *g = q; *b = p; break;
+            case 3: *r = p; *g = q; *b = q; break;
+            case 4: *r = p; *g = p; *b = q; break;
+            case 5: *r = q; *g = p; *b = q; break;
+            default: break;
         }
     }
     SDL_UnlockSurface(image);
+    }
     return image;
 }
 
@@ -605,44 +611,44 @@ int main(int argc, char* argv[]) {
     player[3].key = SDLK_q;
 
     // load static resources
-    frog[0] = load_image("images/50.bmp", 0, 128, 0);
-    frog[1] = load_image("images/50.bmp", 0, 0, 128);
-    frog[2] = load_image("images/50.bmp", 128, 0, 0);
-    frog[3] = load_image("images/50.bmp", 0, 128, 128);
+    frog[0] = load_image("images/50.bmp", 170);
+    frog[1] = load_image("images/50.bmp", 213);
+    frog[2] = load_image("images/50.bmp", 42);
+    frog[3] = load_image("images/50.bmp", 85);
 
-    jump[0] = load_image("images/51.bmp", 0, 128, 0);
-    jump[1] = load_image("images/51.bmp", 0, 0, 128);
-    jump[2] = load_image("images/51.bmp", 128, 0, 0);
-    jump[3] = load_image("images/51.bmp", 0, 128, 128);
+    jump[0] = load_image("images/51.bmp", 0);
+    jump[1] = load_image("images/51.bmp", 0);
+    jump[2] = load_image("images/51.bmp", 0);
+    jump[3] = load_image("images/51.bmp", 0);
 
-    splat[0] = load_image("images/splat.bmp", 0, 128, 0);
-    splat[1] = load_image("images/splat.bmp", 0, 0, 128);
-    splat[2] = load_image("images/splat.bmp", 128, 0, 0);
-    splat[3] = load_image("images/splat.bmp", 0, 128, 128);
+    splat[0] = load_image("images/splat.bmp", 0);
+    splat[1] = load_image("images/splat.bmp", 0);
+    splat[2] = load_image("images/splat.bmp", 0);
+    splat[3] = load_image("images/splat.bmp", 0);
 
-    car[0] = load_image("images/103.bmp", 0, 128, 0);
-    car[1] = load_image("images/103.bmp", 0, 0, 128);
-    car[2] = load_image("images/103.bmp", 128, 0, 0);
-    car[3] = load_image("images/103.bmp", 0, 128, 128);
+    car[0] = load_image("images/103.bmp", 0);
+    car[1] = load_image("images/103.bmp", 0);
+    car[2] = load_image("images/103.bmp", 0);
+    car[3] = load_image("images/103.bmp", 0);
 
-    truck[0] = load_image("images/105.bmp", 0, 128, 0);
-    truck[1] = load_image("images/105.bmp", 0, 0, 128);
-    truck[2] = load_image("images/105.bmp", 128, 0, 0);
-    truck[3] = load_image("images/105.bmp", 0, 128, 128);
+    truck[0] = load_image("images/105.bmp", 0);
+    truck[1] = load_image("images/105.bmp", 0);
+    truck[2] = load_image("images/105.bmp", 0);
+    truck[3] = load_image("images/105.bmp", 0);
 
-    carRL[0] = load_image("images/113.bmp", 0, 128, 0);
-    carRL[1] = load_image("images/113.bmp", 0, 0, 128);
-    carRL[2] = load_image("images/113.bmp", 128, 0, 0);
-    carRL[3] = load_image("images/113.bmp", 0, 128, 128);
+    carRL[0] = load_image("images/113.bmp", 0);
+    carRL[1] = load_image("images/113.bmp", 0);
+    carRL[2] = load_image("images/113.bmp", 0);
+    carRL[3] = load_image("images/113.bmp", 0);
 
-    truckRL[0] = load_image("images/115.bmp", 0, 128, 0);
-    truckRL[1] = load_image("images/115.bmp", 0, 0, 128);
-    truckRL[2] = load_image("images/115.bmp", 128, 0, 0);
-    truckRL[3] = load_image("images/115.bmp", 0, 128, 128);
+    truckRL[0] = load_image("images/115.bmp", 0);
+    truckRL[1] = load_image("images/115.bmp", 0);
+    truckRL[2] = load_image("images/115.bmp", 0);
+    truckRL[3] = load_image("images/115.bmp", 0);
 
-    grass = load_image("images/200.bmp", 0, 0, 0);
-    road  = load_image("images/201.bmp", 0, 0, 0);
-    font  = load_image("images/font.bmp", 0, 0, 0);
+    grass = load_image("images/200.bmp", 0);
+    road  = load_image("images/201.bmp", 0);
+    font  = load_image("images/font.bmp", 0);
 
     croak = Mix_LoadWAV("sounds/4.wav");
 
