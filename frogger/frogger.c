@@ -1,9 +1,14 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <SDL_endian.h> /* Used for the endian-dependent 24 bpp mode */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+
+// screen dimentions
+#define SCREEN_HEIGHT 480
+#define SCREEN_WIDTH 640
 
 // number of pixel per band
 #define NB_PIXELS_PER_LINE 48
@@ -138,7 +143,12 @@ void draw_image(int x, int y, SDL_Surface* image) {
 }
 
 inline void set_pixel(int x, int y, int r, int g, int b) {
-    Uint8* pixmem = (Uint8*) screen->pixels + 3*(640*y + x);
+    Uint8* pixmem = (Uint8*) screen->pixels + 3*(SCREEN_WIDTH*y + x);
+
+    if (x < 0 || x >= SCREEN_WIDTH || y < 0 || y >= SCREEN_HEIGHT) {
+        return;
+    }
+
     pixmem[0] = r;
     pixmem[1] = g;
     pixmem[2] = b;
@@ -336,28 +346,53 @@ void next_player_state(int i) {
     }
 }
 
+void draw_one_road_band(int y) {
+    int i, j;
+
+    for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
+        for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
+            // dotted white line
+            if ((i>>5)%2==0 && (j == 2 || j == NB_PIXELS_PER_LINE-3)) {
+                set_pixel(i, y+j, 255, 255, 255);
+            }
+            // normal grey
+            else {
+                set_pixel(i, y+j, 130, 130, 130);
+            }
+        }
+    }
+}
+
+void draw_one_grass_band(int y) {
+    int i, j;
+
+    for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
+        for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
+            set_pixel(i, y+j, 30, 130, 30);
+        }
+    }
+}
+
 void draw_background() {
     // improvement? generate roads only when needed and forget about old roads. 11-cell tab is enough
-    SDL_Surface* background_image;
     int i, i_veh;
     char buffer[60];
 
     for(i = 0; i != 11; ++i) {
         // distance from the top of the screen
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
-        int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
+        int y = SCREEN_HEIGHT - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
         if (line_number == FINISH_BAND_NUMBER) { // finish line
-            background_image = grass;
+            draw_one_grass_band(y);
         }
         else if (background[line_number].road == true) { // road
-            background_image = road;
+            draw_one_road_band(y);
         }
         else { // grass
-            background_image = grass;
+            draw_one_grass_band(y);
         }
-        draw_image(0, y, background_image);
         if (line_number == FINISH_BAND_NUMBER && y >= 0) { // finish line is on the top (not lower nor higher!)
             sprintf(buffer, "FINISH");
             draw_text(268, y+16, buffer);
@@ -420,7 +455,7 @@ void draw_vehicles() {
     for(i = 0; i != 11; ++i) {
         // distance from the top of the screen
         // y = (total height) - (piece of first line) - (full lines between 1 and i)
-        int y = 480 - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
+        int y = SCREEN_HEIGHT - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
                 
         if (background[line_number].road == true) { // road
@@ -526,10 +561,10 @@ void tick() {
             if (// a frog is near the top of the screen
                 ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
                 // the last line is not visible yet
-                (offset < (NB_BANDS)*NB_PIXELS_PER_LINE - 480)) {
+                (offset < (NB_BANDS)*NB_PIXELS_PER_LINE - SCREEN_HEIGHT)) {
                 offset++;
             }
-            max_row_allowed = (offset+480)/NB_PIXELS_PER_LINE;
+            max_row_allowed = (offset+SCREEN_HEIGHT)/NB_PIXELS_PER_LINE;
             min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
 
             // background
@@ -544,7 +579,7 @@ void tick() {
             // text
             char buffer[60];
             sprintf(buffer, "%2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
-            draw_text(152, 480-24, buffer);
+            draw_text(152, SCREEN_HEIGHT-24, buffer);
         }
             break;
         case WINNER:
@@ -591,7 +626,7 @@ int main(int argc, char* argv[]) {
 
     SDL_putenv("SDL_VIDEO_CENTERED=center");
     SDL_WM_SetCaption("Frogger", "Frogger");
-    screen = SDL_SetVideoMode(640, 480, 24, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 24, SDL_HWSURFACE | SDL_DOUBLEBUF);
     if(screen == NULL) {
         fprintf(stderr, "Unable to set video mode: %s\n", SDL_GetError());
         exit(1);
