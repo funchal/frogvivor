@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 // screen dimentions
 #define SCREEN_HEIGHT 480
@@ -354,6 +355,7 @@ void next_player_state(int i) {
 
 void draw_one_road_band(int y) {
     int i, j;
+    SDL_LockSurface(screen);
 
     for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
         for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
@@ -367,16 +369,38 @@ void draw_one_road_band(int y) {
             }
         }
     }
+    SDL_UnlockSurface(screen);
 }
 
-void draw_one_grass_band(int y) {
+void draw_one_grass_band(int y, int line_number) {
     int i, j;
+    srandom(line_number*42);
+    SDL_LockSurface(screen);
 
     for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
         for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
-            set_pixel(i, y+j, 30, 130, 30);
+            int x = get_random(0, 5);
+            switch(x) {
+                case 0:
+                    set_pixel(i, y+j, 0x6e, 0x89, 0x4f);
+                    break;
+                case 1:
+                    set_pixel(i, y+j, 0x4c, 0x65, 0x51);
+                    break;
+                case 2:
+                    set_pixel(i, y+j, 0x31, 0x4b, 0x00);
+                    break;
+                case 3:
+                case 4:
+                case 5:
+                    set_pixel(i, y+j, 0x0e, 0x21, 0x00);
+                    break;
+                default:
+                    break;
+            }
         }
     }
+    SDL_UnlockSurface(screen);
 }
 
 void draw_background() {
@@ -390,14 +414,11 @@ void draw_background() {
         int y = SCREEN_HEIGHT - (NB_PIXELS_PER_LINE-(offset%NB_PIXELS_PER_LINE)) - (i*NB_PIXELS_PER_LINE);
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
-        if (line_number == FINISH_BAND_NUMBER) { // finish line
-            draw_one_grass_band(y);
-        }
-        else if (background[line_number].road == true) { // road
+        if (background[line_number].road == true) { // road
             draw_one_road_band(y);
         }
         else { // grass
-            draw_one_grass_band(y);
+            draw_one_grass_band(y, line_number);
         }
         if (line_number == FINISH_BAND_NUMBER && y >= 0) { // finish line is on the top (not lower nor higher!)
             sprintf(buffer, "FINISH");
