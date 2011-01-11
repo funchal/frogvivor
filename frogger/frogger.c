@@ -1,6 +1,5 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <SDL_endian.h> /* Used for the endian-dependent 24 bpp mode */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -297,6 +296,7 @@ void next_player_state(int i) {
     bool collision;
     int veh_length;
     int row;
+    int max_row_allowed_for_this_player;
 
     switch(player[i].state) {
     case 9:
@@ -309,10 +309,16 @@ void next_player_state(int i) {
         else {
             player[i].image = frog[i];
         }
+        if (game_state == PICK) {
+            max_row_allowed_for_this_player = player[i].AI ? 0 : 1;
+        }
+        else {
+            max_row_allowed_for_this_player = max_row_allowed;
+        }
         if( // normal jump
-           (!player[i].AI && player[i].key_pressed && (player[i].position < max_row_allowed)) ||
+           (!player[i].AI && player[i].key_pressed && (player[i].position < max_row_allowed_for_this_player)) ||
            // normal jump for AI
-           (player[i].AI && player[i].AI_go_up && (player[i].position < max_row_allowed)) ||
+           (player[i].AI && player[i].AI_go_up && (player[i].position < max_row_allowed_for_this_player)) ||
            // emergency jump
            (player[i].position < min_row_allowed) )
             {
@@ -642,8 +648,8 @@ void tick() {
                 if (player[i].key_pressed && player[i].AI) {
                     // note: from now on, the frog is colorized
                     player[i].AI = false;
-                    next_player_state(i);
                 }
+                next_player_state(i);
                 draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
             }
         }
