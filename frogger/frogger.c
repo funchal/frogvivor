@@ -103,6 +103,10 @@ int min_row_allowed;
 // screen offset in pixels
 int offset;
 
+// for some parts of the code we want reproducible random
+// we store the current seed before these parts and restore it after
+int random_seed;
+
 SDL_Surface* load_image(const char* filename, Uint8 hue) {
     SDL_Surface* temp;
     temp = SDL_LoadBMP(filename);
@@ -374,6 +378,7 @@ void draw_one_road_band(int y) {
 
 void draw_one_grass_band(int y, int line_number) {
     int i, j;
+    random_seed = random();
     srandom(line_number*42);
     SDL_LockSurface(screen);
 
@@ -401,6 +406,7 @@ void draw_one_grass_band(int y, int line_number) {
         }
     }
     SDL_UnlockSurface(screen);
+    srandom(random_seed);
 }
 
 void draw_background() {
