@@ -93,9 +93,6 @@ struct band {
 
 enum { INIT, PICK, GAME, WINNER } game_state;
 
-// the upper frog is at row maxRow
-int max_row;
-
 // max row allowed for frogs. (frogs must not go up out of the screen)
 int max_row_allowed;
 
@@ -197,7 +194,6 @@ long int get_random(long int min, long int max) {
 
 // generate background and vehicles
 void generate_background() {
-    max_row = 0;
     max_row_allowed = 8;
     min_row_allowed = 0;
     offset = 0;
@@ -325,9 +321,6 @@ void next_player_state(int i) {
                 player[i].state++;
                 player[i].position++;
                 Mix_PlayChannel(-1, croak, 0);
-                if(player[i].position > max_row) {
-                    max_row = player[i].position;
-                }
             }
         break;
     case 1:
@@ -657,9 +650,19 @@ void tick() {
 
             break;
         case GAME: {
+            int i;
             // scrolling
-            if (// a frog is near the top of the screen
-                ((max_row-3)*NB_PIXELS_PER_LINE > offset) &&
+            int max_row = 0; // the upper frog is at row maxRow
+            for (i = 0 ; i != 4 ; ++i) {
+                if(player[i].alive && player[i].position > max_row) {
+                    max_row = player[i].position;
+                }
+            }
+            if ((// a frog is near the top of the screen
+                 ((max_row-3)*NB_PIXELS_PER_LINE > offset) ||
+                 // the bottom band has not completely disappeared
+                 (offset%48 != 0)) 
+                &&
                 // the last line is not visible yet
                 (offset < (NB_BANDS)*NB_PIXELS_PER_LINE - SCREEN_HEIGHT)) {
                 offset++;
