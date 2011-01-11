@@ -36,8 +36,8 @@
 
 // static resources
 SDL_Surface* screen;
-SDL_Surface* frog[4];
-SDL_Surface* jump[4]; 
+SDL_Surface* frog[5]; // 4 colors + 1 grey
+SDL_Surface* jump[5]; // 4 colors + 1 grey 
 SDL_Surface* splat[4];
 SDL_Surface* car[4];
 SDL_Surface* truck[4];
@@ -299,9 +299,12 @@ void next_player_state(int i) {
     case 9:
     case 0:
         player[i].state = 0;
-        player[i].image = frog[i];
         if (player[i].AI) {
             update_AI_choice(i);
+            player[i].image = frog[4]; // grey, no color
+        }
+        else {
+            player[i].image = frog[i];
         }
         if( // normal jump
            (!player[i].AI && player[i].key_pressed && (player[i].position < max_row_allowed)) ||
@@ -322,14 +325,24 @@ void next_player_state(int i) {
     case 2:
     case 3:
     case 4:
-        player[i].image = jump[i];
+        if (player[i].AI) {
+            player[i].image = jump[4]; // grey, no color
+        }
+        else { 
+            player[i].image = jump[i];
+        }
         player[i].state++;
                 break;
     case 5:
     case 6:
     case 7:
     case 8:
-        player[i].image = frog[i];
+        if (player[i].AI) {
+            player[i].image = frog[4]; // grey, no color
+        }
+        else {
+            player[i].image = frog[i];
+        }
         player[i].state++;
         break;
     default:
@@ -359,9 +372,9 @@ void next_player_state(int i) {
 
 void draw_one_road_band(int y, int line_number) {
     int i, j;
+    SDL_LockSurface(screen);
     random_seed = random();
     srandom(line_number*42);
-    SDL_LockSurface(screen);
 
     for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
         for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
@@ -393,8 +406,8 @@ void draw_one_road_band(int y, int line_number) {
             }
         }
     }
-    SDL_UnlockSurface(screen);
     srandom(random_seed);
+    SDL_UnlockSurface(screen);
 }
 
 void draw_one_grass_band(int y, int line_number) {
@@ -574,7 +587,7 @@ void tick() {
                 player[i].key_pressed = false;
                 player[i].alive = true;
                 player[i].x = 48*(4+2*i) + OFFSET_FIRST_VERTICAL_LINE;
-                player[i].image = frog[i];
+                player[i].image = frog[4]; // grey until the player decides to play
                 player[i].on_finish_line = false;
                 player[i].AI = true;
                 player[i].AI_go_up = false;
@@ -698,11 +711,13 @@ int main(int argc, char* argv[]) {
     frog[1] = load_image("images/50.bmp", 213);
     frog[2] = load_image("images/50.bmp", 42);
     frog[3] = load_image("images/50.bmp", 85);
+    frog[4] = load_image("images/50.bmp", 0);
 
     jump[0] = load_image("images/51.bmp", 0);
     jump[1] = load_image("images/51.bmp", 0);
     jump[2] = load_image("images/51.bmp", 0);
     jump[3] = load_image("images/51.bmp", 0);
+    jump[4] = load_image("images/51.bmp", 0);
 
     splat[0] = load_image("images/splat.bmp", 0);
     splat[1] = load_image("images/splat.bmp", 0);
@@ -790,7 +805,7 @@ int main(int argc, char* argv[]) {
 
     SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
-    for(i = 0; i != 4; ++i) {
+    for(i = 0; i != 5; ++i) {
         SDL_FreeSurface(frog[i]);
         SDL_FreeSurface(jump[i]);
     }
