@@ -256,32 +256,32 @@ bool overlap(int ax, int al, int bx, int bl) {
 // on the current road and next road(s),
 // and possibly on position wrt the other frogs
 void update_AI_choice(int i) {
-    int probability_to_go_up; // draw within 10000 possibilities
+    int probability_to_go_up; // draw within 1000 possibilities
 
     if (background[player[i].position + 1].road == false) {
         // next band is grass
         if (background[player[i].position].road == false) {
             // current band is grass
-            probability_to_go_up = 200;
+            probability_to_go_up = 80;
         }
         else {
             // current band is a road
-            probability_to_go_up = 250;
+            probability_to_go_up = 100;
         }
     }
     else { 
         // next band is a road
         if (background[player[i].position].road == false) {
             // current band is grass
-            probability_to_go_up = 100;
+            probability_to_go_up = 60;
         }
         else {
             // current band is a road
-            probability_to_go_up = 120;
+            probability_to_go_up = 80;
         }
     }
 
-    if (get_random(0, 10000) <= probability_to_go_up) {
+    if (get_random(0, 1000) <= probability_to_go_up) {
         player[i].AI_go_up = true;
     }
     else {
@@ -357,8 +357,10 @@ void next_player_state(int i) {
     }
 }
 
-void draw_one_road_band(int y) {
+void draw_one_road_band(int y, int line_number) {
     int i, j;
+    random_seed = random();
+    srandom(line_number*42);
     SDL_LockSurface(screen);
 
     for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
@@ -369,11 +371,30 @@ void draw_one_road_band(int y) {
             }
             // normal grey
             else {
-                set_pixel(i, y+j, 130, 130, 130);
+                int x = get_random(0, 5);
+                switch(x) {
+                case 0:
+                    set_pixel(i, y+j, 135, 135, 135);
+                    break;
+                case 1:
+                    set_pixel(i, y+j, 120, 120, 120);
+                    break;
+                case 2:
+                    set_pixel(i, y+j, 125, 125, 125);
+                    break;
+                case 3:
+                case 4:
+                case 5:
+                    set_pixel(i, y+j, 130, 130, 130);
+                    break;
+                default:
+                    break;
+                }
             }
         }
     }
     SDL_UnlockSurface(screen);
+    srandom(random_seed);
 }
 
 void draw_one_grass_band(int y, int line_number) {
@@ -421,7 +442,7 @@ void draw_background() {
         int line_number = (offset/NB_PIXELS_PER_LINE) + i;
         // draw background
         if (background[line_number].road == true) { // road
-            draw_one_road_band(y);
+            draw_one_road_band(y, line_number);
         }
         else { // grass
             draw_one_grass_band(y, line_number);
