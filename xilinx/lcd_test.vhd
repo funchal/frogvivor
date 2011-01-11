@@ -73,7 +73,7 @@ begin
         wait for clock_period/2;
     end process;
 
-    hsl2rgb_0 : entity work.hsl2rgb port map(
+    colorize_0 : entity work.colorize port map(
         hue    => 3,
         lum    => y(7 downto 0),
         ored   => ired,
