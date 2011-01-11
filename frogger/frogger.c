@@ -745,10 +745,10 @@ int main(int argc, char* argv[]) {
     frog[3] = load_image("images/50.bmp", 85);
     frog[4] = load_image("images/50.bmp", 0);
 
-    jump[0] = load_image("images/51.bmp", 0);
-    jump[1] = load_image("images/51.bmp", 0);
-    jump[2] = load_image("images/51.bmp", 0);
-    jump[3] = load_image("images/51.bmp", 0);
+    jump[0] = load_image("images/51.bmp", 170);
+    jump[1] = load_image("images/51.bmp", 213);
+    jump[2] = load_image("images/51.bmp", 42);
+    jump[3] = load_image("images/51.bmp", 85);
     jump[4] = load_image("images/51.bmp", 0);
 
     splat[0] = load_image("images/splat.bmp", 0);
