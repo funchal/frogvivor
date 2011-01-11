@@ -667,7 +667,9 @@ void tick() {
                 (offset < (NB_BANDS)*NB_PIXELS_PER_LINE - SCREEN_HEIGHT)) {
                 offset++;
             }
-            max_row_allowed = (offset+SCREEN_HEIGHT)/NB_PIXELS_PER_LINE;
+            // (3*NB_PIXELS_PER_LINE/4) because a frog can jump to 
+            // the upper band as soon as 3/4 of the band is on the screen
+            max_row_allowed = (offset+SCREEN_HEIGHT-(3*NB_PIXELS_PER_LINE/4))/NB_PIXELS_PER_LINE;
             min_row_allowed = (offset+NB_PIXELS_PER_LINE/2)/NB_PIXELS_PER_LINE;
 
             // background
