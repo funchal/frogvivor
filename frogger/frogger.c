@@ -40,7 +40,7 @@
 SDL_Surface* screen;
 SDL_Surface* frog[5]; // 4 colors + 1 grey
 SDL_Surface* jump[5]; // 4 colors + 1 grey 
-SDL_Surface* splat[4];
+SDL_Surface* splat[5]; // 4 colors + 1 grey
 SDL_Surface* car[4];
 SDL_Surface* truck[4];
 SDL_Surface* carRL[5];
@@ -373,6 +373,12 @@ void next_player_state(int i) {
     }
     if (collision) {
         player[i].alive = false;
+        if (player[i].AI) {
+            player[i].image = splat[4];
+        }
+        else {
+            player[i].image = splat[i];
+        }
     }
     if (player[i].position == FINISH_BAND_NUMBER) {
         player[i].on_finish_line = true;
@@ -539,12 +545,7 @@ void draw_frogs() {
     }
 
     for(i = 0; i != 4; ++i) {
-        if (player[i].alive) {
-            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
-        }
-        else {
-            draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, splat[i]);
-        }
+        draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
     }
 }
 
@@ -751,10 +752,11 @@ int main(int argc, char* argv[]) {
     jump[3] = load_image("images/51.bmp", 85);
     jump[4] = load_image("images/51.bmp", 0);
 
-    splat[0] = load_image("images/splat.bmp", 0);
-    splat[1] = load_image("images/splat.bmp", 0);
-    splat[2] = load_image("images/splat.bmp", 0);
-    splat[3] = load_image("images/splat.bmp", 0);
+    splat[0] = load_image("images/splat.bmp", 170);
+    splat[1] = load_image("images/splat.bmp", 213);
+    splat[2] = load_image("images/splat.bmp", 42);
+    splat[3] = load_image("images/splat.bmp", 85);
+    splat[4] = load_image("images/splat.bmp", 0);
 
     car[0] = load_image("images/103.bmp", 0);
     car[1] = load_image("images/103.bmp", 0);
