@@ -7,6 +7,9 @@
 #include <stdbool.h>
 #include <math.h>
 
+// uncomment to get raw background and more speed
+//#define PRETTY_BACKGROUND 1
+
 // screen dimentions
 #define SCREEN_HEIGHT 480
 #define SCREEN_WIDTH 640
@@ -373,6 +376,7 @@ void next_player_state(int i) {
 void draw_one_road_band(int y, int line_number) {
     int i, j;
     SDL_LockSurface(screen);
+#ifdef PRETTY_BACKGROUND
     random_seed = random();
     srandom(line_number*42);
 
@@ -407,14 +411,29 @@ void draw_one_road_band(int y, int line_number) {
         }
     }
     srandom(random_seed);
+#else
+    for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
+        for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
+            // dotted white line
+            if ((i>>5)%2==0 && (j == 2 || j == NB_PIXELS_PER_LINE-3)) {
+                set_pixel(i, y+j, 255, 255, 255);
+            }
+            // normal grey
+            else {
+                set_pixel(i, y+j, 135, 135, 135);
+            }
+        }
+    }
+#endif
     SDL_UnlockSurface(screen);
 }
 
 void draw_one_grass_band(int y, int line_number) {
     int i, j;
+    SDL_LockSurface(screen);
+#ifdef PRETTY_BACKGROUND
     random_seed = random();
     srandom(line_number*42);
-    SDL_LockSurface(screen);
 
     for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
         for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
@@ -439,8 +458,15 @@ void draw_one_grass_band(int y, int line_number) {
             }
         }
     }
-    SDL_UnlockSurface(screen);
     srandom(random_seed);
+#else
+    for (i = 0 ; i < SCREEN_WIDTH ; ++i) {
+        for (j = 0 ; j < NB_PIXELS_PER_LINE ; ++j) {
+            set_pixel(i, y+j, 0x31, 0x4b, 0x00);
+        }
+    }
+#endif
+    SDL_UnlockSurface(screen);
 }
 
 void draw_background() {
