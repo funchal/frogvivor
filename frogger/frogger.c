@@ -491,7 +491,7 @@ void draw_background() {
         else { // grass
             draw_one_grass_band(y, line_number);
         }
-        if (line_number == FINISH_BAND_NUMBER && y >= 0) { // finish line is on the top (not lower nor higher!)
+        if (line_number == FINISH_BAND_NUMBER) { // finish line is displayed
             sprintf(buffer, "FINISH");
             draw_text(268, y+16, buffer);
         }                
