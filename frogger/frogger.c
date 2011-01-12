@@ -499,46 +499,40 @@ void draw_background() {
 }
 
 void draw_frogs() {
-    int nb_alive = 0;
-    int frog_alive = 100; // one of living frog
-    int nb_finish = 0;
-    int frog_finish = 100; // one of living frog
     int i;
-
     for(i = 0; i != 4; ++i) {
         if (player[i].alive) {
             next_player_state(i);
-            nb_alive++;
-            frog_alive = i;
-            if (player[i].on_finish_line) {
-                nb_finish++;
-                frog_finish = i;
-            }
+        }
+        draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+    }
+}
+
+void give_points() {
+    int nb_alive = 0;
+    int frog_alive = 100; // one of living frog
+    int i;
+
+    // test if a frog is on the finish line
+    for(i = 0; i != 4; ++i) {
+        if (player[i].on_finish_line) {
+            player[i].score++;
+            game_state = WINNER;
         }
     }
-
-    // test end of race and give points
-    if (nb_alive == 0) { // draw: no point
-        printf("draw\n");
-        game_state = WINNER;
-    }
-    else if (nb_alive == 1) { // one winner
-        printf("frog %d wins!\n", frog_alive);
-        game_state = WINNER;
-        player[frog_alive].score++;
-    }
-    else if (nb_finish == 1) { // one winner
-        printf("frog %d wins!\n", frog_finish);
-        game_state = WINNER;
-        player[frog_finish].score++;
-    }
-    else if (nb_finish > 1) { // draw
-        printf("draw\n");
-        game_state = WINNER;
-    }
-
+    // test if there is only one frog alive
     for(i = 0; i != 4; ++i) {
-        draw_image(player[i].x, NB_PIXELS_PER_LINE*(9-player[i].position)+offset, player[i].image);
+        if (player[i].alive) {
+            nb_alive++;
+            frog_alive = i;
+        }
+    }
+    if (nb_alive == 1) {
+        player[frog_alive].score++;
+        game_state = WINNER;
+    }
+    if (nb_alive == 0) {
+        game_state = WINNER;
     }
 }
 
@@ -677,6 +671,9 @@ void tick() {
 
             // compute next state of frogs and display them
             draw_frogs();
+
+            // test end of race (ie update game_state) and give points to players
+            give_points();
 
             // compute next state of vehicles and display them
             draw_vehicles();
