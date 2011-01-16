@@ -139,4 +139,4 @@ begin
         report "end of testbench";
         wait;
     end process;
-end;
+end architecture;

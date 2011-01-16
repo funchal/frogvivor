@@ -1,0 +1,17 @@
+# Output products list for <sprites>
+_xmsgs/pn_parser.xmsgs
+blk_mem_gen_ds512.pdf
+blk_mem_gen_readme.txt
+sprites.asy
+sprites.gise
+sprites.mif
+sprites.ngc
+sprites.sym
+sprites.v
+sprites.veo
+sprites.vhd
+sprites.vho
+sprites.xco
+sprites.xise
+sprites_flist.txt
+sprites_xmdf.tcl

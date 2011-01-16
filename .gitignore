@@ -1,5 +1,7 @@
 *.xreport
+*.xmsgs
 *.html
+*.bak
 *.log
 *.swp
 *.swn
@@ -9,3 +11,4 @@
 *.o
 *.d
 *.x
+*.pdf
