@@ -21,61 +21,22 @@ entity top is
 end entity;
 
 architecture behavioral of top is
-    component lcd is
+    component dcm32to28 is
         port(
-            reset  : in  std_logic;
-            clock  : in  std_logic;
-            ired   : in  std_logic_vector(5 downto 0);
-            igreen : in  std_logic_vector(5 downto 0);
-            iblue  : in  std_logic_vector(5 downto 0);
-            ored   : out std_logic_vector(5 downto 0);
-            ogreen : out std_logic_vector(5 downto 0);
-            oblue  : out std_logic_vector(5 downto 0);
-            enable : out std_logic;
-            hsync  : out std_logic;
-            vsync  : out std_logic;
-            x      : out std_logic_vector(9 downto 0);
-            y      : out std_logic_vector(8 downto 0)
-        );
-    end component;
-
-	component dcm32to28 is
-        port(
-            RST_IN          : IN  std_logic;
-            CLKIN_IN        : IN  std_logic;          
-            CLKFX_OUT       : OUT std_logic;
-            CLKIN_IBUFG_OUT : OUT std_logic;
-            CLK0_OUT        : OUT std_logic
+            RST_IN          : in  std_logic;
+            CLKIN_IN        : in  std_logic;          
+            CLKFX_OUT       : out std_logic;
+            CLKIN_IBUFG_OUT : out std_logic;
+            CLK0_OUT        : out std_logic
         );
 	end component;
 
-    component deltasigmadac is
-        generic(
-            width  : integer := 8
-        );
-        port(
-            reset  : in  std_logic;
-            clock  : in  std_logic;
-            dacin  : in  std_logic_vector(width-1 downto 0);
-            dacout : out std_logic
-        );
-    end component;
-
     signal reset       : std_logic;
     signal pixel_clock : std_logic;
-    signal audio_clock : std_logic;
-    signal x           : std_logic_vector(9 downto 0);
-    signal y           : std_logic_vector(8 downto 0);
-    signal red         : std_logic_vector(5 downto 0);
-    signal green       : std_logic_vector(5 downto 0);
-    signal blue        : std_logic_vector(5 downto 0);
-    signal hflip       : std_logic;
-    signal vflip       : std_logic;
-    signal audioin     : std_logic_vector(7 downto 0);
-    signal mult        : std_logic_vector(1 downto 0);
 begin
 
-    dcm32to28_0 : dcm32to28
+    dcm32to28_0 :
+        dcm32to28
         port map(
             RST_IN => reset,
             CLKIN_IN => clock,
@@ -84,72 +45,40 @@ begin
             CLK0_OUT => open
         );
 
-    lcd_0 : lcd
+    frogvivor_0 :
+        entity work.frogvivor
         port map(
-            reset     => reset,
-            clock     => pixel_clock,
-            ired      => red,
-            igreen    => green,
-            iblue     => blue,
-            ored(0)   => wingBL(4),
-            ored(1)   => wingAH(4),
-            ored(2)   => wingBL(5),
-            ored(3)   => wingAH(3),
-            ored(4)   => wingBL(6),
-            ored(5)   => wingAH(2),
-            ogreen(0) => wingAH(1),
-            ogreen(1) => wingBL(7),
-            ogreen(2) => wingAH(0),
-            ogreen(3) => wingBH(0),
-            ogreen(4) => wingAL(7),
-            ogreen(5) => wingBH(1),
-            oblue(0)  => wingBH(2),
-            oblue(1)  => wingAL(6),
-            oblue(2)  => wingBH(3),
-            oblue(3)  => wingAL(5),
-            oblue(4)  => wingBH(4),
-            oblue(5)  => wingAL(4),
-            enable    => wingAL(3),
-            hsync     => wingAH(5),
-            vsync     => wingBL(3),
-            x         => x,
-            y         => y
+            reset       => reset,
+            pixel_clock => pixel_clock,
+            red(0)      => wingBL(4),
+            red(1)      => wingAH(4),
+            red(2)      => wingBL(5),
+            red(3)      => wingAH(3),
+            red(4)      => wingBL(6),
+            red(5)      => wingAH(2),
+            green(0)    => wingAH(1),
+            green(1)    => wingBL(7),
+            green(2)    => wingAH(0),
+            green(3)    => wingBH(0),
+            green(4)    => wingAL(7),
+            green(5)    => wingBH(1),
+            blue(0)     => wingBH(2),
+            blue(1)     => wingAL(6),
+            blue(2)     => wingBH(3),
+            blue(3)     => wingAL(5),
+            blue(4)     => wingBH(4),
+            blue(5)     => wingAL(4),
+            enable      => wingAL(3),
+            hsync       => wingAH(5),
+            vsync       => wingBL(3),
+            hflip       => wingBH(5),
+            vflip       => wingAL(2),
+            dacout      => wingAH(6)
         );
 
-    red <= (others => x(6));
-    green <= (others => x(7));
-    blue <= y(8 downto 3);
-    
     reset <= '0';
 
-    hflip <= '1';
-    vflip <= '1';
-
-    wingBH(5) <= hflip;
-    wingAL(2) <= vflip;
-
     wingBL(2) <= pixel_clock;
-
-    process(pixel_clock, reset)
-    begin
-        if (reset = '1') then
-            audioin <= (others => '0');
-            mult <= (others => '0');
-        elsif rising_edge(pixel_clock) then
-            audioin <= audioin * mult;
-            if(audioin > b"11111100") then
-                mult <= mult + 1;
-            end if;
-        end if;
-    end process;
-
-    deltasigmadac_0 : deltasigmadac
-        port map(
-            reset  => reset,
-            clock  => pixel_clock,
-            dacin  => audioin,
-            dacout => wingAH(6)
-        );
 
     -- tip/left/mono channel
     -- audiotip <= wingAH(6);
