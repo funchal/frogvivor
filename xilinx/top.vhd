@@ -21,22 +21,12 @@ entity top is
 end entity;
 
 architecture behavioral of top is
-    component dcm32to28 is
-        port(
-            RST_IN          : in  std_logic;
-            CLKIN_IN        : in  std_logic;          
-            CLKFX_OUT       : out std_logic;
-            CLKIN_IBUFG_OUT : out std_logic;
-            CLK0_OUT        : out std_logic
-        );
-	end component;
-
     signal reset       : std_logic;
     signal pixel_clock : std_logic;
 begin
 
     dcm32to28_0 :
-        dcm32to28
+        entity work.dcm32to28
         port map(
             RST_IN => reset,
             CLKIN_IN => clock,

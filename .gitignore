@@ -1,5 +1,7 @@
 *.xreport
+*.wdb
 *.xmsgs
+*.bit
 *.html
 *.bak
 *.log

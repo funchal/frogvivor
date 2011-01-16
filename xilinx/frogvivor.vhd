@@ -3,8 +3,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity frogvivor is
     port(
@@ -41,9 +40,20 @@ begin
         port map(
             reset  => reset,
             clock  => pixel_clock,
-            hue    => 3,
             x      => x,
             y      => y,
+            hue_0  => 4,
+            hue_1  => 5,
+            hue_2  => 1,
+            hue_3  => 2,
+            posx_0 => to_unsigned(48*(4+2*0)-40,10),
+            posx_1 => to_unsigned(48*(4+2*1)-40,10),
+            posx_2 => to_unsigned(48*(4+2*2)-40,10),
+            posx_3 => to_unsigned(48*(4+2*3)-40,10),
+            posy_0 => to_unsigned(384,9),
+            posy_1 => to_unsigned(384,9),
+            posy_2 => to_unsigned(384,9),
+            posy_3 => to_unsigned(384,9),
             red    => red_0,
             green  => green_0,
             blue   => blue_0,

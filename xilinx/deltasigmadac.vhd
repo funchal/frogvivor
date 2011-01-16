@@ -3,8 +3,7 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 entity deltasigmadac is
     generic(
@@ -19,13 +18,13 @@ entity deltasigmadac is
 end entity;
 
 architecture behavioral of deltasigmadac is
-    signal deltaadder    : std_logic_vector(width+1 downto 0);
-    signal sigmaadder    : std_logic_vector(width+1 downto 0);
-    signal sigmalatch    : std_logic_vector(width+1 downto 0);
-    signal deltafeedback : std_logic_vector(width+1 downto 0);
+    signal deltaadder    : unsigned(width+1 downto 0);
+    signal sigmaadder    : unsigned(width+1 downto 0);
+    signal sigmalatch    : unsigned(width+1 downto 0);
+    signal deltafeedback : unsigned(width+1 downto 0);
 begin
     deltafeedback <= (sigmalatch(width+1), sigmalatch(width+1), others => '0');
-    deltaadder    <= dacin + deltafeedback;
+    deltaadder    <= unsigned(dacin) + deltafeedback;
     sigmaadder    <= deltaadder + sigmalatch;
 
     process(clock, reset)

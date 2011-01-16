@@ -9,9 +9,20 @@ entity frog is
     port(
         reset  : in  std_logic;
         clock  : in  std_logic;
-        hue    : in  integer range 0 to 5;
         x      : in  std_logic_vector(9 downto 0);
         y      : in  std_logic_vector(8 downto 0);
+        hue_0  : in  integer range 0 to 5;
+        hue_1  : in  integer range 0 to 5;
+        hue_2  : in  integer range 0 to 5;
+        hue_3  : in  integer range 0 to 5;
+        posx_0 : in  unsigned(9 downto 0);
+        posx_1 : in  unsigned(9 downto 0);
+        posx_2 : in  unsigned(9 downto 0);
+        posx_3 : in  unsigned(9 downto 0);
+        posy_0 : in  unsigned(8 downto 0);
+        posy_1 : in  unsigned(8 downto 0);
+        posy_2 : in  unsigned(8 downto 0);
+        posy_3 : in  unsigned(8 downto 0);
         red    : out std_logic_vector(5 downto 0);
         green  : out std_logic_vector(5 downto 0);
         blue   : out std_logic_vector(5 downto 0);
@@ -20,11 +31,17 @@ entity frog is
 end entity;
  
 architecture behavioral of frog is
-    constant width  : integer := 48;
-    constant height : integer := 48;
-    constant posx   : integer := 64;
-    constant posy   : integer := 64;
+    constant width  : unsigned(7 downto 0) := to_unsigned(48, 8);
+    constant height : unsigned(7 downto 0) := to_unsigned(48, 8);
 
+    signal posx     : unsigned(9 downto 0);
+    signal posy     : unsigned(8 downto 0);
+    signal huex     : integer range 0 to 5;
+    signal addrax   : unsigned(16 downto 0);
+    signal enable_0 : std_logic;
+    signal enable_1 : std_logic;
+    signal enable_2 : std_logic;
+    signal enable_3 : std_logic;
     signal enablex  : std_logic;
     signal addra    : std_logic_vector(13 downto 0);
     signal douta    : std_logic_vector(7 downto 0);
@@ -37,14 +54,43 @@ begin
     ux <= unsigned(x);
     uy <= unsigned(y);
 
-    enablex <= '1' when ((ux >= posx) and (ux < posx + width) and
-                         (uy >= posy) and (uy < posy + height)) else
-               '0';
+    enable_0 <= '1' when ((ux >= posx_0) and (ux < posx_0 + width) and
+                          (uy >= posy_0) and (uy < posy_0 + height)) else
+                '0';
 
-    addra <= std_logic_vector(((ux - posx) + (uy - posy) * width) sll 4) when enablex = '1' else
-             (others => '0');
+    enable_1 <= '1' when ((ux >= posx_1) and (ux < posx_1 + width) and
+                          (uy >= posy_1) and (uy < posy_1 + height)) else
+                '0';
 
-    addrb <= (others => '0');
+    enable_2 <= '1' when ((ux >= posx_2) and (ux < posx_2 + width) and
+                          (uy >= posy_2) and (uy < posy_2 + height)) else
+                '0';
+
+    enable_3 <= '1' when ((ux >= posx_3) and (ux < posx_3 + width) and
+                          (uy >= posy_3) and (uy < posy_3 + height)) else
+                '0';
+
+    enablex <= enable_0 or enable_1 or enable_2 or enable_3;
+
+    posx <= posx_0 when enable_0 = '1' else
+            posx_1 when enable_1 = '1' else
+            posx_2 when enable_2 = '1' else
+            posx_3;
+
+    posy <= posy_0 when enable_0 = '1' else
+            posy_1 when enable_1 = '1' else
+            posy_2 when enable_2 = '1' else
+            posy_3;
+
+    huex <= hue_0 when enable_0 = '1' else
+            hue_1 when enable_1 = '1' else
+            hue_2 when enable_2 = '1' else
+            hue_3;
+
+    addrax <= (ux - posx) + ((uy - posy) * width);
+
+    addra  <= std_logic_vector(addrax(13 downto 0)) when enablex = '1' else
+              (others => '0');
 
     sprites_0 :
         entity work.sprites
@@ -62,12 +108,14 @@ begin
     colorize_0 :
         entity work.colorize
         port map(
-            hue    => hue,
+            hue    => huex,
             lum    => douta,
             ored   => red,
             ogreen => green,
             oblue  => blue
         );
+
+    addrb <= (others => '0');
 
     enable <= '1' when enablex = '1' and (douta /= "00000000") else '0';
 
