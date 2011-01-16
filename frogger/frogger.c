@@ -681,7 +681,7 @@ void tick() {
             // text
             char buffer[60];
             sprintf(buffer, "%2d    %2d    %2d    %2d", player[0].score, player[1].score, player[2].score, player[3].score);
-            draw_text(152, SCREEN_HEIGHT-24, buffer);
+            draw_text(152, 16, buffer);
         }
             break;
         case WINNER:
