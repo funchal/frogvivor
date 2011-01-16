@@ -22,6 +22,11 @@ bmp2coe.x_OBJS = bmp2coe.o
 .PHONY: all
 all: $(TARGETS)
 
+.PHONY: check
+check:
+	./bmp2coe.x --grayscale ../frogger/images/50.bmp ../frogger/images/51.bmp ../frogger/images/103.bmp ../frogger/images/splat.bmp sprites.coe
+	./bmp2coe.x --monochrome ../frogger/images/font.bmp font.coe
+
 .PHONY: clean
 clean:
 	-$(RM) *.x *.o *.d
