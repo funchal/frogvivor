@@ -35,6 +35,7 @@ architecture behavioral of frogvivor is
     signal x         : std_logic_vector(9 downto 0);
     signal y         : std_logic_vector(8 downto 0);
     signal frogs     : frogs_t;
+    signal vehicles  : vehicles_t;
 begin
 
     frogs(0).hue <= 4;
@@ -54,6 +55,17 @@ begin
     frogs(2).state <= splat;
     frogs(3).state <= jump;
 
+    vehicles(0).hue <= 3;
+    vehicles(1).hue <= 0;
+    vehicles(0).x <= to_unsigned(373, 10);
+    vehicles(0).y <= to_unsigned(370, 9);
+    vehicles(1).x <= to_unsigned(256, 10);
+    vehicles(1).y <= to_unsigned(64, 9);
+    vehicles(0).kind <= car;
+    vehicles(1).kind <= truck;
+    vehicles(0).dir <= rl;
+    vehicles(1).dir <= lr;
+    
     draw_frog_0 :
         entity work.draw_frog
         port map(
@@ -62,6 +74,7 @@ begin
             x      => x,
             y      => y,
             frogs  => frogs,
+            vehicles => vehicles,
             red    => red_0,
             green  => green_0,
             blue   => blue_0,

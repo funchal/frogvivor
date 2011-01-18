@@ -742,17 +742,17 @@ int main(int argc, char* argv[]) {
     player[3].key = SDLK_q;
 
     // load static resources
-    frog[0] = load_image("images/50.bmp", 170);
-    frog[1] = load_image("images/50.bmp", 213);
-    frog[2] = load_image("images/50.bmp", 42);
-    frog[3] = load_image("images/50.bmp", 85);
-    frog[4] = load_image("images/50.bmp", 0);
+    frog[0] = load_image("images/frog.bmp", 170);
+    frog[1] = load_image("images/frog.bmp", 213);
+    frog[2] = load_image("images/frog.bmp", 42);
+    frog[3] = load_image("images/frog.bmp", 85);
+    frog[4] = load_image("images/frog.bmp", 0);
 
-    jump[0] = load_image("images/51.bmp", 170);
-    jump[1] = load_image("images/51.bmp", 213);
-    jump[2] = load_image("images/51.bmp", 42);
-    jump[3] = load_image("images/51.bmp", 85);
-    jump[4] = load_image("images/51.bmp", 0);
+    jump[0] = load_image("images/jump.bmp", 170);
+    jump[1] = load_image("images/jump.bmp", 213);
+    jump[2] = load_image("images/jump.bmp", 42);
+    jump[3] = load_image("images/jump.bmp", 85);
+    jump[4] = load_image("images/jump.bmp", 0);
 
     splat[0] = load_image("images/splat.bmp", 170);
     splat[1] = load_image("images/splat.bmp", 213);
@@ -760,28 +760,28 @@ int main(int argc, char* argv[]) {
     splat[3] = load_image("images/splat.bmp", 85);
     splat[4] = load_image("images/splat.bmp", 0);
 
-    car[0] = load_image("images/103.bmp", 0);
-    car[1] = load_image("images/103.bmp", 0);
-    car[2] = load_image("images/103.bmp", 0);
-    car[3] = load_image("images/103.bmp", 0);
+    car[0] = load_image("images/car.bmp", 0);
+    car[1] = load_image("images/car.bmp", 0);
+    car[2] = load_image("images/car.bmp", 0);
+    car[3] = load_image("images/car.bmp", 0);
 
-    truck[0] = load_image("images/105.bmp", 0);
-    truck[1] = load_image("images/105.bmp", 0);
-    truck[2] = load_image("images/105.bmp", 0);
-    truck[3] = load_image("images/105.bmp", 0);
+    truck[0] = load_image("images/truck.bmp", 0);
+    truck[1] = load_image("images/truck.bmp", 0);
+    truck[2] = load_image("images/truck.bmp", 0);
+    truck[3] = load_image("images/truck.bmp", 0);
 
-    carRL[0] = load_image("images/113.bmp", 0);
-    carRL[1] = load_image("images/113.bmp", 0);
-    carRL[2] = load_image("images/113.bmp", 0);
-    carRL[3] = load_image("images/113.bmp", 0);
+    carRL[0] = load_image("images/old/113.bmp", 0);
+    carRL[1] = load_image("images/old/113.bmp", 0);
+    carRL[2] = load_image("images/old/113.bmp", 0);
+    carRL[3] = load_image("images/old/113.bmp", 0);
 
-    truckRL[0] = load_image("images/115.bmp", 0);
-    truckRL[1] = load_image("images/115.bmp", 0);
-    truckRL[2] = load_image("images/115.bmp", 0);
-    truckRL[3] = load_image("images/115.bmp", 0);
+    truckRL[0] = load_image("images/old/115.bmp", 0);
+    truckRL[1] = load_image("images/old/115.bmp", 0);
+    truckRL[2] = load_image("images/old/115.bmp", 0);
+    truckRL[3] = load_image("images/old/115.bmp", 0);
 
-    grass = load_image("images/200.bmp", 0);
-    road  = load_image("images/201.bmp", 0);
+    grass = load_image("images/old/200.bmp", 0);
+    road  = load_image("images/old/201.bmp", 0);
     font  = load_image("images/font.bmp", 0);
 
     croak = Mix_LoadWAV("sounds/4.wav");
