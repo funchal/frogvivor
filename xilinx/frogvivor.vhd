@@ -4,6 +4,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use work.frog_types.all;
 
 entity frogvivor is
     port(
@@ -33,27 +34,34 @@ architecture behavioral of frogvivor is
     signal mult      : std_logic_vector(1 downto 0);
     signal x         : std_logic_vector(9 downto 0);
     signal y         : std_logic_vector(8 downto 0);
+    signal frogs     : frogs_t;
 begin
 
-    frog_0 :
-        entity work.frog
+    frogs(0).hue <= 4;
+    frogs(1).hue <= 5;
+    frogs(2).hue <= 1;
+    frogs(3).hue <= 2;
+    frogs(0).x <= to_unsigned(48*(4+2*0)-40,10);
+    frogs(1).x <= to_unsigned(48*(4+2*1)-40,10);
+    frogs(2).x <= to_unsigned(48*(4+2*2)-40,10);
+    frogs(3).x <= to_unsigned(48*(4+2*3)-40,10);
+    frogs(0).y <= to_unsigned(384,9);
+    frogs(1).y <= to_unsigned(384,9);
+    frogs(2).y <= to_unsigned(384,9);
+    frogs(3).y <= to_unsigned(384,9);
+    frogs(0).state <= frog;
+    frogs(1).state <= jump;
+    frogs(2).state <= splat;
+    frogs(3).state <= jump;
+
+    draw_frog_0 :
+        entity work.draw_frog
         port map(
             reset  => reset,
             clock  => pixel_clock,
             x      => x,
             y      => y,
-            hue_0  => 4,
-            hue_1  => 5,
-            hue_2  => 1,
-            hue_3  => 2,
-            posx_0 => to_unsigned(48*(4+2*0)-40,10),
-            posx_1 => to_unsigned(48*(4+2*1)-40,10),
-            posx_2 => to_unsigned(48*(4+2*2)-40,10),
-            posx_3 => to_unsigned(48*(4+2*3)-40,10),
-            posy_0 => to_unsigned(384,9),
-            posy_1 => to_unsigned(384,9),
-            posy_2 => to_unsigned(384,9),
-            posy_3 => to_unsigned(384,9),
+            frogs  => frogs,
             red    => red_0,
             green  => green_0,
             blue   => blue_0,

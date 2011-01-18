@@ -7,11 +7,11 @@ use ieee.numeric_std.all;
 
 entity colorize is
     port(
-        hue    : in  integer range 0 to 5;
-        lum    : in  std_logic_vector(7 downto 0);
-        ored   : out std_logic_vector(5 downto 0);
-        ogreen : out std_logic_vector(5 downto 0);
-        oblue  : out std_logic_vector(5 downto 0)
+        hue   : in  integer range 0 to 5;
+        lum   : in  std_logic_vector(7 downto 0);
+        red   : out std_logic_vector(5 downto 0);
+        green : out std_logic_vector(5 downto 0);
+        blue  : out std_logic_vector(5 downto 0)
     );
 end entity;
 
@@ -24,8 +24,8 @@ begin
     q <= std_logic_vector((unsigned(lum) * 2) - (unsigned(p) srl 8) - 1)
         when lum /= "00000000" else (others => '0');
 
-    ored   <= p(15 downto 10) when hue = 2 or hue = 3 or hue = 4 else q(7 downto 2);
-    ogreen <= p(15 downto 10) when hue = 4 or hue = 5 or hue = 0 else q(7 downto 2);
-    oblue  <= p(15 downto 10) when hue = 0 or hue = 1 or hue = 2 else q(7 downto 2);
+    red   <= p(15 downto 10) when hue = 2 or hue = 3 or hue = 4 else q(7 downto 2);
+    green <= p(15 downto 10) when hue = 4 or hue = 5 or hue = 0 else q(7 downto 2);
+    blue  <= p(15 downto 10) when hue = 0 or hue = 1 or hue = 2 else q(7 downto 2);
 
 end architecture;

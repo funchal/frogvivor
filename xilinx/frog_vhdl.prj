@@ -1,0 +1,4 @@
+vhdl work "/home/funchal/frogvivor/xilinx/ipcore_dir/sprites.vhd"
+vhdl work "/home/funchal/frogvivor/xilinx/reduce_pack.vhd"
+vhdl work "/home/funchal/frogvivor/xilinx/colorize.vhd"
+vhdl work "/home/funchal/frogvivor/xilinx/frog.vhd"

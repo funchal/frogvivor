@@ -34,11 +34,11 @@
 sprites YourInstanceName (
 	.clka(clka),
 	.rsta(rsta),
-	.addra(addra), // Bus [13 : 0] 
+	.addra(addra), // Bus [14 : 0] 
 	.douta(douta), // Bus [7 : 0] 
 	.clkb(clkb),
 	.rstb(rstb),
-	.addrb(addrb), // Bus [13 : 0] 
+	.addrb(addrb), // Bus [14 : 0] 
 	.doutb(doutb)); // Bus [7 : 0] 
 
 // INST_TAG_END ------ End INSTANTIATION Template ---------

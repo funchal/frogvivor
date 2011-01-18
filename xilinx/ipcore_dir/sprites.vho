@@ -33,11 +33,11 @@ component sprites
 	port (
 	clka: IN std_logic;
 	rsta: IN std_logic;
-	addra: IN std_logic_VECTOR(13 downto 0);
+	addra: IN std_logic_VECTOR(14 downto 0);
 	douta: OUT std_logic_VECTOR(7 downto 0);
 	clkb: IN std_logic;
 	rstb: IN std_logic;
-	addrb: IN std_logic_VECTOR(13 downto 0);
+	addrb: IN std_logic_VECTOR(14 downto 0);
 	doutb: OUT std_logic_VECTOR(7 downto 0));
 end component;
 

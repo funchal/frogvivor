@@ -45,8 +45,8 @@ begin
             enable      => enable,
             hsync       => hsync,
             vsync       => vsync,
-            hflip       => open,
-            vflip       => open,
+            hflip       => hflip,
+            vflip       => vflip,
             dacout      => open
         );
 

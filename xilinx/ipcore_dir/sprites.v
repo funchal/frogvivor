@@ -50,18 +50,18 @@ module sprites(
 
 input clka;
 input rsta;
-input [13 : 0] addra;
+input [14 : 0] addra;
 output [7 : 0] douta;
 input clkb;
 input rstb;
-input [13 : 0] addrb;
+input [14 : 0] addrb;
 output [7 : 0] doutb;
 
 // synthesis translate_off
 
       BLK_MEM_GEN_V4_3 #(
-		.C_ADDRA_WIDTH(14),
-		.C_ADDRB_WIDTH(14),
+		.C_ADDRA_WIDTH(15),
+		.C_ADDRB_WIDTH(15),
 		.C_ALGORITHM(1),
 		.C_BYTE_SIZE(9),
 		.C_COMMON_CLK(1),
@@ -89,8 +89,8 @@ output [7 : 0] doutb;
 		.C_MEM_TYPE(4),
 		.C_MUX_PIPELINE_STAGES(0),
 		.C_PRIM_TYPE(1),
-		.C_READ_DEPTH_A(13824),
-		.C_READ_DEPTH_B(13824),
+		.C_READ_DEPTH_A(20736),
+		.C_READ_DEPTH_B(20736),
 		.C_READ_WIDTH_A(8),
 		.C_READ_WIDTH_B(8),
 		.C_RSTRAM_A(0),
@@ -106,8 +106,8 @@ output [7 : 0] doutb;
 		.C_USE_SOFTECC(0),
 		.C_WEA_WIDTH(1),
 		.C_WEB_WIDTH(1),
-		.C_WRITE_DEPTH_A(13824),
-		.C_WRITE_DEPTH_B(13824),
+		.C_WRITE_DEPTH_A(20736),
+		.C_WRITE_DEPTH_B(20736),
 		.C_WRITE_MODE_A("WRITE_FIRST"),
 		.C_WRITE_MODE_B("WRITE_FIRST"),
 		.C_WRITE_WIDTH_A(8),

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <symbol version="7" name="sprites">
     <symboltype>BLOCK</symboltype>
-    <timestamp>2011-1-16T14:21:4</timestamp>
-    <pin polarity="Input" x="0" y="80" name="addra[13:0]" />
+    <timestamp>2011-1-18T16:5:52</timestamp>
+    <pin polarity="Input" x="0" y="80" name="addra[14:0]" />
     <pin polarity="Input" x="0" y="240" name="rsta" />
     <pin polarity="Input" x="0" y="272" name="clka" />
-    <pin polarity="Input" x="0" y="432" name="addrb[13:0]" />
+    <pin polarity="Input" x="0" y="432" name="addrb[14:0]" />
     <pin polarity="Input" x="0" y="592" name="rstb" />
     <pin polarity="Input" x="0" y="624" name="clkb" />
     <pin polarity="Output" x="576" y="80" name="douta[7:0]" />
@@ -14,13 +14,13 @@
         <text style="fontsize:40;fontname:Arial" x="32" y="32">sprites</text>
         <rect width="512" x="32" y="32" height="640" />
         <line x2="32" y1="80" y2="80" style="linewidth:W" x1="0" />
-        <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="80" type="pin addra[13:0]" />
+        <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="80" type="pin addra[14:0]" />
         <line x2="32" y1="240" y2="240" x1="0" />
         <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="240" type="pin rsta" />
         <line x2="32" y1="272" y2="272" x1="0" />
         <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="272" type="pin clka" />
         <line x2="32" y1="432" y2="432" style="linewidth:W" x1="0" />
-        <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="432" type="pin addrb[13:0]" />
+        <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="432" type="pin addrb[14:0]" />
         <line x2="32" y1="592" y2="592" x1="0" />
         <attrtext style="fontsize:24;fontname:Arial" attrname="PinName" x="36" y="592" type="pin rstb" />
         <line x2="32" y1="624" y2="624" x1="0" />

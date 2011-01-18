@@ -14,14 +14,13 @@
          <ClosedNode>/sqrt16 - circuits |home|funchal|frogvivor|xilinx|sqrt16.vhd</ClosedNode>
          <ClosedNode>/sqrt32 - circuits |home|funchal|frogvivor|xilinx|sqrt16.vhd</ClosedNode>
          <ClosedNode>/test - testbench |home|funchal|frogvivor|xilinx|test.vhd</ClosedNode>
-         <ClosedNode>/top - behavioral |home|funchal|frogvivor|xilinx|top.vhd/frogvivor_0 - frogvivor - behavioral/frog_0 - frog - behavioral</ClosedNode>
          <ClosedNode>/top - behavioral |home|marmottine|frogger|frogvivor|xilinx|top.vhd</ClosedNode>
          <ClosedNode>/z - Behavioral |home|marmottine|frogger|frogvivor|xilinx|z.vhd</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
          <SelectedItem>top - behavioral (/home/funchal/frogvivor/xilinx/top.vhd)</SelectedItem>
       </SelectedItems>
-      <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
+      <ScrollbarPosition orientation="vertical" >1</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000020200000001000000010000006400000224000000020000000000000000000000000000000064ffffffff000000810000000000000002000002240000000100000000000000000000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
@@ -30,7 +29,6 @@
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_VHDL_ARCHITECTURE" guiview="Process" >
       <ClosedNodes>
          <ClosedNodesVersion>1</ClosedNodesVersion>
-         <ClosedNode>CORE Generator</ClosedNode>
          <ClosedNode>Design Utilities</ClosedNode>
          <ClosedNode>Implement Design</ClosedNode>
          <ClosedNode>Implement Design/Map</ClosedNode>
@@ -54,12 +52,14 @@
       <ClosedNodes>
          <ClosedNodesVersion>1</ClosedNodesVersion>
       </ClosedNodes>
-      <SelectedItems/>
+      <SelectedItems>
+         <SelectedItem>reduce_pack.vhd</SelectedItem>
+      </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000000000000000100000000000000000000000000000000000002ff000000040101000100000000000000000000000064ffffffff000000810000000000000004000000ea00000001000000000000011b0000000100000000000000840000000100000000000000760000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem>BPC3003_2.03+_alternative.ucf</CurrentItem>
+      <CurrentItem>reduce_pack.vhd</CurrentItem>
    </ItemView>
    <ItemView guiview="Library" >
       <ClosedNodes>
@@ -68,7 +68,7 @@
       <SelectedItems/>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000000000000010000000000000000000000000000000000000128000000010001000100000000000000000000000064ffffffff000000810000000000000001000001280000000100000000</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000000000000010000000000000000000000000000000000000119000000010001000100000000000000000000000064ffffffff000000810000000000000001000001190000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
       <CurrentItem>work</CurrentItem>
    </ItemView>
@@ -82,7 +82,7 @@
          <ClosedNode>/lcd_test - behavioral |home|marmottine|frogger|frogvivor|xilinx|lcd_test.vhd</ClosedNode>
          <ClosedNode>/psqrt - circuits |home|funchal|frogvivor|xilinx|sqrt.vhd</ClosedNode>
          <ClosedNode>/sqrt16 - circuits |home|funchal|frogvivor|xilinx|sqrt16.vhd/sqrt32_0 - sqrt32 - circuits</ClosedNode>
-         <ClosedNode>/test - testbench |home|funchal|frogvivor|xilinx|test.vhd/frogvivor_0 - frogvivor - behavioral</ClosedNode>
+         <ClosedNode>/test - testbench |home|funchal|frogvivor|xilinx|test.vhd/frogvivor_0 - frogvivor - behavioral/frog_0 - frog - behavioral</ClosedNode>
          <ClosedNode>/top - behavioral |home|marmottine|frogger|frogvivor|xilinx|top.vhd</ClosedNode>
          <ClosedNode>/top - testbench |home|funchal|frogvivor|xilinx|lcd_test.vhd/frogvivor_0 - frogvivor - behavioral</ClosedNode>
          <ClosedNode>/top - testbench |home|funchal|frogvivor|xilinx|lcd_test.vhd/txt_util</ClosedNode>
@@ -92,7 +92,7 @@
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" >000000ff000000000000000100000001000000000000000000000000000000000202000000010000000100000064000001a0000000020000000000000000000000000000000064ffffffff000000810000000000000002000001a00000000100000000000000000000000100000000</ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000020200000001000000010000006400000224000000020000000000000000000000000000000064ffffffff000000810000000000000002000002240000000100000000000000000000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
       <CurrentItem>test - testbench (/home/funchal/frogvivor/xilinx/test.vhd)</CurrentItem>
    </ItemView>
@@ -102,13 +102,13 @@
          <ClosedNode>Design Utilities</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000187000000010000000100000000000000000000000064ffffffff000000810000000000000001000001870000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="BehavioralSim" sourcetype="DESUT_VHDL_ARCHITECTURE" guiview="Process" >
       <ClosedNodes>
@@ -176,13 +176,13 @@
          <ClosedNode>User Constraints</ClosedNode>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000187000000010000000100000000000000000000000064ffffffff000000810000000000000001000001870000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_XCO" guiview="Process" >
       <ClosedNodes>
@@ -202,26 +202,26 @@
          <ClosedNodesVersion>1</ClosedNodesVersion>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000187000000010000000100000000000000000000000064ffffffff000000810000000000000001000001870000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="BehavioralSim" sourcetype="DESUT_XAW" guiview="Process" >
       <ClosedNodes>
          <ClosedNodesVersion>1</ClosedNodesVersion>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000187000000010000000100000000000000000000000064ffffffff000000810000000000000001000001870000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="BehavioralSim" sourcetype="DESUT_VHDL_PACKAGE_DECL" guiview="Process" >
       <ClosedNodes>
@@ -230,21 +230,21 @@
       <SelectedItems/>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
-      <ViewHeaderState orientation="horizontal" ></ViewHeaderState>
+      <ViewHeaderState orientation="horizontal" />
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
    <ItemView engineview="SynthesisOnly" sourcetype="DESUT_VHDL_PACKAGE_BODY" guiview="Process" >
       <ClosedNodes>
          <ClosedNodesVersion>1</ClosedNodesVersion>
       </ClosedNodes>
       <SelectedItems>
-         <SelectedItem></SelectedItem>
+         <SelectedItem/>
       </SelectedItems>
       <ScrollbarPosition orientation="vertical" >0</ScrollbarPosition>
       <ScrollbarPosition orientation="horizontal" >0</ScrollbarPosition>
       <ViewHeaderState orientation="horizontal" >000000ff00000000000000010000000100000000000000000000000000000000000000000000000187000000010000000100000000000000000000000064ffffffff000000810000000000000001000001870000000100000000</ViewHeaderState>
       <UserChangedColumnWidths orientation="horizontal" >false</UserChangedColumnWidths>
-      <CurrentItem></CurrentItem>
+      <CurrentItem/>
    </ItemView>
 </Project>
