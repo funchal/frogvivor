@@ -36,36 +36,46 @@ architecture behavioral of frogvivor is
     signal y         : std_logic_vector(8 downto 0);
     signal frogs     : frogs_t;
     signal vehicles  : vehicles_t;
+    signal irq       : std_logic;
 begin
 
-    frogs(0).hue <= 4;
-    frogs(1).hue <= 5;
-    frogs(2).hue <= 1;
-    frogs(3).hue <= 2;
-    frogs(0).x <= to_unsigned(48*(4+2*0)-40,10);
-    frogs(1).x <= to_unsigned(48*(4+2*1)-40,10);
-    frogs(2).x <= to_unsigned(48*(4+2*2)-40,10);
-    frogs(3).x <= to_unsigned(48*(4+2*3)-40,10);
-    frogs(0).y <= to_unsigned(384,9);
-    frogs(1).y <= to_unsigned(384,9);
-    frogs(2).y <= to_unsigned(384,9);
-    frogs(3).y <= to_unsigned(384,9);
-    frogs(0).state <= jump;
-    frogs(1).state <= jump;
-    frogs(2).state <= jump;
-    frogs(3).state <= jump;
+    process(pixel_clock, reset)
+    begin
+        if (reset = '1') then
+            frogs(0).hue <= 4;
+            frogs(1).hue <= 5;
+            frogs(2).hue <= 1;
+            frogs(3).hue <= 2;
+            frogs(0).x <= to_unsigned(48*(4+2*0)-40,10);
+            frogs(1).x <= to_unsigned(48*(4+2*1)-40,10);
+            frogs(2).x <= to_unsigned(48*(4+2*2)-40,10);
+            frogs(3).x <= to_unsigned(48*(4+2*3)-40,10);
+            frogs(0).y <= to_unsigned(384,9);
+            frogs(1).y <= to_unsigned(384,9);
+            frogs(2).y <= to_unsigned(384,9);
+            frogs(3).y <= to_unsigned(384,9);
+            frogs(0).state <= jump;
+            frogs(1).state <= jump;
+            frogs(2).state <= jump;
+            frogs(3).state <= jump;
 
-    vehicles(0).hue <= 3;
-    vehicles(1).hue <= 0;
-    vehicles(0).x <= to_unsigned(373, 10);
-    vehicles(0).y <= to_unsigned(270, 9);
-    vehicles(1).x <= to_unsigned(256, 10);
-    vehicles(1).y <= to_unsigned(64, 9);
-    vehicles(0).kind <= car;
-    vehicles(1).kind <= truck;
-    vehicles(0).dir <= rl;
-    vehicles(1).dir <= lr;
-    
+            vehicles(0).hue <= 3;
+            vehicles(1).hue <= 0;
+            vehicles(0).x <= to_unsigned(373, 10);
+            vehicles(0).y <= to_unsigned(270, 9);
+            vehicles(1).x <= to_unsigned(256, 10);
+            vehicles(1).y <= to_unsigned(64, 9);
+            vehicles(0).kind <= car;
+            vehicles(1).kind <= truck;
+            vehicles(0).dir <= rl;
+            vehicles(1).dir <= lr;
+        elsif rising_edge(pixel_clock) then
+            if (irq = '1') then
+                frogs(0).y <= frogs(0).y - 1;
+            end if;
+	    end if;
+    end process;
+
     draw_frog_0 :
         entity work.draw_frog
         port map(
@@ -100,7 +110,8 @@ begin
             hsync => hsync,
             vsync => vsync,
             x => x,
-            y => y
+            y => y,
+            irq => irq
         );
 
     hflip <= '1';

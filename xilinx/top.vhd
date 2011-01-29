@@ -21,14 +21,15 @@ entity top is
 end entity;
 
 architecture behavioral of top is
-    signal reset       : std_logic;
+    signal reset       : std_logic := '1';
     signal pixel_clock : std_logic;
+    signal count       : unsigned(3 downto 0);
 begin
 
     dcm32to28_0 :
         entity work.dcm32to28
         port map(
-            RST_IN => reset,
+            RST_IN => '0',
             CLKIN_IN => clock,
             CLKFX_OUT => pixel_clock,
             CLKIN_IBUFG_OUT => open,
@@ -66,7 +67,15 @@ begin
             dacout      => wingAH(6)
         );
 
-    reset <= '0';
+    process(pixel_clock)
+    begin
+        if rising_edge(pixel_clock) then
+            count <= count + 1;
+            if(count = 0) then
+                reset <= '0';
+            end if;
+        end if;
+    end process;
 
     wingBL(2) <= pixel_clock;
 

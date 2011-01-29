@@ -31,7 +31,8 @@ entity lcd is
         hsync  : out std_logic;
         vsync  : out std_logic;
         x      : out std_logic_vector(9 downto 0);
-        y      : out std_logic_vector(8 downto 0)
+        y      : out std_logic_vector(8 downto 0);
+        irq    : out std_logic
     );
 end entity;
 
@@ -77,6 +78,9 @@ begin
 
     y <= vcounter when (vcounter < TVD)
                   else (others => '0');
+
+    irq <= '1' when (hcounter = TEP) and (vcounter = TVD) else
+           '0';
 
     process(clock, reset)
     begin
