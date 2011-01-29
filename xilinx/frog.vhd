@@ -63,7 +63,7 @@ architecture behavioral of draw_frog is
     type vehicle_coef_t is array(1 downto 0) of integer;
 
     signal addrax       : unsigned(18 downto 0);
-    signal addrbx       : unsigned(18 downto 0);
+    signal addrbx       : unsigned(19 downto 0);
     signal frog_enable  : std_logic_vector(3 downto 0);
     signal vehicle_enable : std_logic_vector(1 downto 0);
     signal frog_enables : std_logic;
@@ -76,6 +76,8 @@ architecture behavioral of draw_frog is
     signal ux           : unsigned(9 downto 0);
     signal uy           : unsigned(8 downto 0);
     signal dx           : unsigned(9 downto 0);
+    signal dx0          : unsigned(19 downto 0);
+    signal dx1          : unsigned(19 downto 0);
     signal dy           : unsigned(8 downto 0);
     signal this_frog    : frog_t;
     signal this_vehicle : vehicle_t;
@@ -121,13 +123,15 @@ begin
                     vehicles(1);
 
     -- rotate/flip
-    dx <= (uy - this_vehicle.y);
-    dy <= (ux - this_vehicle.x) when this_vehicle.dir = rl else
-          2*width - (ux - this_vehicle.x) when this_vehicle.kind = car else
-          3*width - (ux - this_vehicle.x);
+    dy <= (uy - this_vehicle.y);
+    dx0 <= 2*width;
+    dx1 <= 3*width;
+    dx <= (ux - this_vehicle.x) when this_vehicle.dir = rl else
+          dx0(9 downto 0) - (ux - this_vehicle.x) when this_vehicle.kind = car else
+          dx1(9 downto 0) - (ux - this_vehicle.x);
 
-    addrbx <= (dx) + (dy * width) when or_reduce(vehicle_enable) = '1' else
-              to_unsigned(0, 19);
+    addrbx <= (dy) + (dx * width) when or_reduce(vehicle_enable) = '1' else
+              to_unsigned(0, 20);
 
     addrb  <= std_logic_vector(car_base_addr   + addrbx(14 downto 0)) when this_vehicle.kind = car else
               std_logic_vector(truck_base_addr + addrbx(14 downto 0));
@@ -135,12 +139,12 @@ begin
     sprites_0 :
         entity work.sprites
         port map (
-            clka => clock,
             rsta => reset,
+            clka => clock,
             addra => addra,
             douta => douta,
-            clkb => clock,
             rstb => reset,
+            clkb => clock,
             addrb => addrb,
             doutb => doutb
         );

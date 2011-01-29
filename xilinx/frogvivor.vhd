@@ -50,15 +50,15 @@ begin
     frogs(1).y <= to_unsigned(384,9);
     frogs(2).y <= to_unsigned(384,9);
     frogs(3).y <= to_unsigned(384,9);
-    frogs(0).state <= frog;
+    frogs(0).state <= jump;
     frogs(1).state <= jump;
-    frogs(2).state <= splat;
+    frogs(2).state <= jump;
     frogs(3).state <= jump;
 
     vehicles(0).hue <= 3;
     vehicles(1).hue <= 0;
     vehicles(0).x <= to_unsigned(373, 10);
-    vehicles(0).y <= to_unsigned(370, 9);
+    vehicles(0).y <= to_unsigned(270, 9);
     vehicles(1).x <= to_unsigned(256, 10);
     vehicles(1).y <= to_unsigned(64, 9);
     vehicles(0).kind <= car;

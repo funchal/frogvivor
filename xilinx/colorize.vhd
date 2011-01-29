@@ -21,8 +21,8 @@ architecture behavioral of colorize is
 begin
 
     p <= std_logic_vector((unsigned(lum) * unsigned(lum)));
-    q <= std_logic_vector((unsigned(lum) * 2) - (unsigned(p) srl 8) - 1)
-        when lum /= "00000000" else (others => '0');
+    q <= std_logic_vector((unsigned(lum) sll 1) - (unsigned(p) srl 8) - 1)
+         when lum /= "00000000" else (others => '0');
 
     red   <= p(15 downto 10) when hue = 2 or hue = 3 or hue = 4 else q(7 downto 2);
     green <= p(15 downto 10) when hue = 4 or hue = 5 or hue = 0 else q(7 downto 2);
