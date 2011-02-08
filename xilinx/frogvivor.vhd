@@ -37,6 +37,7 @@ architecture behavioral of frogvivor is
     signal frogs     : frogs_t;
     signal vehicles  : vehicles_t;
     signal irq       : std_logic;
+	signal tmp_y     : unsigned(10 downto 0);
 begin
 
     process(pixel_clock, reset)
@@ -50,14 +51,22 @@ begin
             frogs(1).x <= to_unsigned(48*(4+2*1)-40,10);
             frogs(2).x <= to_unsigned(48*(4+2*2)-40,10);
             frogs(3).x <= to_unsigned(48*(4+2*3)-40,10);
-            frogs(0).y <= to_unsigned(384,9);
+            -- frogs(0).y <= to_unsigned(384,9); -- depends on position
             frogs(1).y <= to_unsigned(384,9);
             frogs(2).y <= to_unsigned(384,9);
             frogs(3).y <= to_unsigned(384,9);
-            frogs(0).state <= jump;
-            frogs(1).state <= jump;
-            frogs(2).state <= jump;
-            frogs(3).state <= jump;
+            -- frogs(0).state <= frog; -- depends on counter
+            frogs(1).state <= frog;
+            frogs(2).state <= frog;
+            frogs(3).state <= frog;
+            frogs(0).position <= to_unsigned(0, 6);
+            frogs(1).position <= to_unsigned(0, 6);
+            frogs(2).position <= to_unsigned(0, 6);
+            frogs(3).position <= to_unsigned(0, 6);
+            frogs(0).counter <= to_unsigned(0, 4);
+            frogs(1).counter <= to_unsigned(0, 4);
+            frogs(2).counter <= to_unsigned(0, 4);
+            frogs(3).counter <= to_unsigned(0, 4);
 
             vehicles(0).hue <= 3;
             vehicles(1).hue <= 0;
@@ -71,11 +80,24 @@ begin
             vehicles(1).dir <= lr;
         elsif rising_edge(pixel_clock) then
             if (irq = '1') then
-                frogs(0).y <= frogs(0).y - 1;
+				if (frogs(0).counter = 0) then
+					if (frogs(0).go = '1') then
+						frogs(0).position <= frogs(0).position + 1;
+						frogs(0).counter <= to_unsigned(1, 4);
+					end if;
+				elsif (frogs(0).counter = 8) then
+					frogs(0).counter <= to_unsigned(0, 4);					
+				else
+					frogs(0).counter <= frogs(0).counter + 1;
+				end if;
             end if;
 	    end if;
     end process;
-
+	frogs(0).state <= jump when 4 <= frogs(0).counter and frogs(0).counter <= 7 else
+					  frog;
+	tmp_y <= to_unsigned(48,5) * (to_unsigned(9,6) - frogs(0).position);
+	frogs(0).y <= tmp_y(8 downto 0);
+	
     draw_frog_0 :
         entity work.draw_frog
         port map(

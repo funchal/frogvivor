@@ -54,7 +54,7 @@ Mix_Chunk* croak;
 // dynamic state
 struct player {
     int position;
-    int state;
+    int state; // between 0 and 9
     bool key_pressed;
     SDLKey key;
     int x; // x coordinate

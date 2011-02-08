@@ -7,12 +7,18 @@ use ieee.numeric_std.all;
 
 package frog_types is
     type frog_state is (frog, jump, splat);
-    type frog_t is
+	type frog_t is
         record
-            hue   : integer range 0 to 5;
-            x     : unsigned(9 downto 0);
-            y     : unsigned(8 downto 0);
-            state : frog_state;
+            hue      : integer range 0 to 5;
+            x        : unsigned(9 downto 0);
+            y        : unsigned(8 downto 0);
+			-- line number where the frog is (from bottom)
+			position : unsigned(5 downto 0);
+            state    : frog_state;
+			-- count when the frog should change state
+			counter  : unsigned(3 downto 0);
+			-- the user want to go up
+			go       : std_logic;
         end record;
     type frogs_t is array(3 downto 0) of frog_t;
 
